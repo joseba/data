@@ -11,6 +11,7 @@
             --danger: #dc2626;
             --danger-hover: #b91c1c;
             --success: #10b981;
+            --warning: #f59e0b;
             --bg: #f8fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
@@ -27,31 +28,54 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--surface); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px; }
         
         .header-info h1 { 
-            font-size: 18px; 
-            text-transform: uppercase; 
-            margin: 0; 
-            letter-spacing: 0.5px; 
-            cursor: pointer;
-            display: inline-block;
-            transition: color 0.2s;
+            font-size: 18px; text-transform: uppercase; margin: 0; letter-spacing: 0.5px; 
+            cursor: pointer; display: inline-block; transition: color 0.2s;
         }
         .header-info h1:hover { color: var(--primary); text-decoration: underline; }
         .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .header-actions .btn { min-width: 90px; }
+
+        /* KPI Section (Dynamic Layout) */
+        .kpi-container { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .kpi-card { 
+            background: var(--surface); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            border: 1px solid var(--border); flex: 1 1 150px; 
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .kpi-label { font-size: 11px; text-transform: uppercase; color: var(--text-light); margin-bottom: 5px; font-weight: 600; letter-spacing: 0.5px; text-align: left; }
+        .kpi-value { font-size: 24px; font-weight: 700; color: var(--text); text-align: center; }
+        .kpi-value.highlight { color: var(--primary); }
 
         /* Buttons */
         .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { background: #f1f5f9; }
-        
         .btn-primary { background: var(--primary); color: white; border: none; }
         .btn-primary:hover { background: var(--primary-hover); }
-        
         .btn-danger { background: white; color: var(--danger); border-color: #fca5a5; }
         .btn-danger:hover { background: #fef2f2; color: var(--danger); }
-        
         .btn-danger-solid { background: var(--danger); color: white; border: none; }
         .btn-danger-solid:hover { background: var(--danger-hover); }
+        .btn-sm { padding: 4px 8px; font-size: 11px; min-width: auto; }
+        
+        /* Schema Manager Styles */
+        .schema-section { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); }
+        .schema-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; }
+        .schema-item { background: #f8fafc; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .schema-info { display: flex; flex-direction: column; }
+        .schema-name { font-weight: 600; font-size: 13px; }
+        .schema-meta { font-size: 11px; color: var(--text-light); }
+        .schema-actions { display: flex; gap: 8px; }
+        .schema-icon { cursor: pointer; font-weight: bold; padding: 4px; border-radius: 4px; }
+        .schema-icon.edit { color: var(--primary); }
+        .schema-icon.edit:hover { background: #eff6ff; }
+        .schema-icon.delete { color: var(--danger); }
+        .schema-icon.delete:hover { background: #fef2f2; }
 
-        .btn-sm { padding: 4px 8px; font-size: 11px; }
+        .add-field-box { background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px solid transparent; transition: border-color 0.3s; }
+        .add-field-box.editing { border-color: var(--warning); background: #fffbeb; }
+        .add-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .add-options, .add-kpi-options { display: none; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 4px; border: 1px solid var(--border); }
+        .add-options.show, .add-kpi-options.show { display: block; }
 
         /* Sync Button States */
         .btn-sync-success { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
@@ -73,10 +97,8 @@
         .form-card { background: var(--surface); padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 5px; font-weight: 500; color: var(--text-light); font-size: 12px; }
-        .form-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
-        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
-        .dynamic-fields-area { border-top: 1px dashed var(--border); margin-top: 20px; padding-top: 20px; }
-        .field-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+        .form-input, .form-select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; background: white; }
+        .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
 
         /* Search */
         .search-bar { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
@@ -84,31 +106,17 @@
         /* Modal */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .overlay.show { display: flex; }
-        .modal { background: var(--surface); padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal { background: var(--surface); padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
 
-        /* Startup Screen & Layout Changes */
+        /* Startup Screen */
         .startup-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .startup-card { background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        
-        .startup-input-row { display: flex; gap: 10px; margin-bottom: 25px; } /* Increased margin bottom for spacing */
+        .startup-input-row { display: flex; gap: 10px; margin-bottom: 25px; }
         .startup-input-row .form-input { text-align: left; margin-bottom: 0; flex: 1; }
         .startup-input-row .btn { width: auto; padding: 0 20px; }
-
-        /* Updated Recent Area: No border, No label, Centered */
         .recent-area { margin-top: 0; text-align: center; }
-        
         .recent-list { display: flex; flex-direction: column; gap: 8px; }
-        .recent-btn { 
-            width: 100%; 
-            text-align: center;      /* Centered Text */
-            justify-content: center; /* Centered Flex Content */
-            padding: 12px 15px;
-            font-size: 14px;
-            background: #fff;
-            text-transform: uppercase;
-            font-weight: 600;
-            color: var(--text-light);
-        }
+        .recent-btn { width: 100%; text-align: center; justify-content: center; padding: 12px 15px; font-size: 14px; background: #fff; text-transform: uppercase; font-weight: 600; color: var(--text-light); }
         .recent-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
         /* Toast */
@@ -122,15 +130,12 @@
         <div class="startup-card">
             <h2 style="margin-bottom: 5px;">Select Context</h2>
             <p style="color: var(--text-light); margin-bottom: 20px; font-size: 13px;">Enter a context name to load data.</p>
-            
             <div class="startup-input-row">
                 <input type="text" id="startup-input" class="form-input" placeholder="CONTEXT NAME" style="text-transform: uppercase;">
                 <button id="startup-btn" class="btn btn-primary">LOAD</button>
             </div>
-
             <div id="recent-area" class="recent-area" style="display: none;">
-                <div id="recent-list" class="recent-list">
-                    </div>
+                <div id="recent-list" class="recent-list"></div>
             </div>
         </div>
     </div>
@@ -140,13 +145,10 @@
             <div class="header-info">
                 <h1 id="app-title" title="Click to switch context">DATA MANAGER</h1>
             </div>
-            
             <div class="header-actions">
-                <button class="btn btn-danger-solid" id="delete-all-btn" title="Delete All Records">DELETE ALL</button>
-                <div style="width: 1px; background: #e2e8f0; margin: 0 5px;"></div>
+                <button class="btn btn-danger-solid" id="delete-all-btn" title="Delete All Records">DESTROY</button>
                 <button class="btn" id="export-btn" title="Download CSV">EXPORT</button>
                 <button class="btn" id="import-btn" title="Upload CSV">IMPORT</button>
-                <div style="width: 1px; background: #e2e8f0; margin: 0 5px;"></div>
                 <button class="btn" id="refresh-btn" title="Sync Status">↻ SYNC</button>
                 <button class="btn" id="config-btn">CONFIG</button>
                 <button class="btn btn-primary" id="add-btn">NEW</button>
@@ -154,7 +156,11 @@
         </div>
 
         <div id="list-view" class="view-section active">
+            
             <input type="text" class="search-bar" id="search-input" placeholder="Search records...">
+            
+            <div class="kpi-container" id="kpi-container"></div>
+
             <div class="table-container">
                 <table id="data-table">
                     <thead></thead>
@@ -178,13 +184,7 @@
                         <input type="text" class="form-input" id="field-name" required>
                     </div>
                     <div id="dynamic-fields-container"></div>
-                    <div class="dynamic-fields-area">
-                        <label class="form-label">Add New Field to Schema</label>
-                        <div class="field-row">
-                            <input type="text" class="form-input" id="new-field-key" placeholder="Field Name (e.g. Phone)">
-                            <button type="button" class="btn" id="add-field-btn">Add</button>
-                        </div>
-                    </div>
+                    
                     <div style="margin-top: 30px; display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary" style="flex: 1;">Save Record</button>
                         <button type="button" class="btn btn-danger" id="delete-btn" style="display: none;">Delete</button>
@@ -198,21 +198,67 @@
 
     <div class="overlay" id="config-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 5px;">API Configuration</h3>
+            <h3 style="margin-bottom: 5px;">Configuration</h3>
             <p style="font-size: 12px; margin-bottom: 20px; color: var(--text-light);">
                 Context: <b><span id="modal-context"></span></b>
             </p>
+            
             <div class="form-group">
-                <label class="form-label">JSONBin API Key (X-Master-Key)</label>
+                <label class="form-label">JSONBin API Key</label>
                 <input type="password" class="form-input" id="conf-api-key" placeholder="$2a$10...">
             </div>
             <div class="form-group">
                 <label class="form-label">Bin ID (Optional)</label>
                 <input type="text" class="form-input" id="conf-bin-id" placeholder="65a...">
             </div>
+
+            <div class="schema-section">
+                <h4 style="margin-bottom: 10px; font-size: 13px; text-transform: uppercase;">Database Schema</h4>
+                <div id="schema-list" class="schema-list"></div>
+
+                <div class="add-field-box" id="schema-editor-box">
+                    <label class="form-label" style="margin-bottom:8px" id="schema-box-title">Add New Field</label>
+                    <div class="add-row">
+                        <input type="text" class="form-input" id="schema-new-name" placeholder="Name" style="flex: 2;">
+                        <select id="schema-new-type" class="form-select" style="flex: 1;">
+                            <option value="text">Text</option>
+                            <option value="number">Number</option>
+                            <option value="select">Selector</option>
+                        </select>
+                    </div>
+                    
+                    <div id="schema-options-row" class="add-options">
+                        <label class="form-label" style="font-size:10px;">Dropdown Options</label>
+                        <input type="text" class="form-input" id="schema-new-options" placeholder="A, B, C">
+                    </div>
+
+                    <div id="schema-kpi-row" class="add-kpi-options">
+                        <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
+                            <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                <input type="checkbox" id="schema-new-iskpi"> Show as KPI
+                            </label>
+                            <select id="schema-new-kpiop" class="form-select" style="width:100px; padding:5px;">
+                                <option value="sum">Sum</option>
+                                <option value="avg">Avg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                            <input type="checkbox" id="schema-new-show" checked> Show in List
+                        </label>
+                        <div>
+                            <button class="btn btn-sm" id="schema-cancel-edit-btn" style="display:none; margin-right:5px;">Cancel</button>
+                            <button class="btn btn-primary btn-sm" id="schema-add-btn">Add Field</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" id="cancel-config" style="flex: 1;">Cancel</button>
-                <button class="btn btn-primary" id="save-config" style="flex: 1;">Save & Connect</button>
+                <button class="btn" id="cancel-config" style="flex: 1;">Close</button>
+                <button class="btn btn-primary" id="save-config" style="flex: 1;">Save Config</button>
             </div>
         </div>
     </div>
@@ -223,8 +269,9 @@
         class ContextApp {
             constructor() {
                 this.context = null;
-                this.items = [];
-                this.currentItemId = null; 
+                this.db = { schema: [], items: [] };
+                this.currentItemId = null;
+                this.editingFieldKey = null;
                 this.isProcessing = false;
                 this.eventsBound = false;
                 this.RECENT_KEY = 'global_recent_contexts'; 
@@ -241,7 +288,6 @@
                 }
             }
 
-            // --- STARTUP & RECENT CONTEXTS ---
             showStartupScreen() {
                 const screen = document.getElementById('startup-screen');
                 const container = document.getElementById('app-container');
@@ -258,9 +304,7 @@
 
                 const handleStart = () => {
                     const val = input.value.trim().toUpperCase();
-                    if (val) {
-                        this.switchUrlAndLoad(val);
-                    }
+                    if (val) this.switchUrlAndLoad(val);
                 };
                 btn.onclick = handleStart;
                 input.onkeypress = (e) => { if(e.key === 'Enter') handleStart(); };
@@ -275,7 +319,6 @@
                     recentArea.style.display = 'none';
                     return;
                 }
-
                 recentArea.style.display = 'block';
                 recentList.innerHTML = recents.map(ctx => 
                     `<button class="btn recent-btn" onclick="app.switchUrlAndLoad('${ctx}')">${ctx}</button>`
@@ -286,7 +329,7 @@
                 let recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
                 recents = recents.filter(c => c !== context);
                 recents.unshift(context);
-                recents = recents.slice(0, 5); // Keep top 5
+                recents = recents.slice(0, 5); 
                 localStorage.setItem(this.RECENT_KEY, JSON.stringify(recents));
             }
 
@@ -307,10 +350,11 @@
                 document.getElementById('app-title').textContent = `${this.context} DATA`;
                 document.getElementById('app-container').style.display = 'block';
 
-                this.items = [];
+                this.db = { schema: [], items: [] };
                 this.updateSyncButton('reset');
+                
                 this.bindEvents();
-                this.loadLocalData();
+                this.loadLocalData(); 
                 this.renderTable();
                 this.checkSyncReady(); 
             }
@@ -326,7 +370,7 @@
                 document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
                 document.getElementById('refresh-btn').addEventListener('click', () => this.manualSync()); 
                 document.getElementById('back-btn').addEventListener('click', () => this.showView('list'));
-                document.getElementById('add-field-btn').addEventListener('click', () => this.addNewFieldInput());
+                
                 document.getElementById('item-form').addEventListener('submit', (e) => this.saveItem(e));
                 document.getElementById('delete-btn').addEventListener('click', () => this.deleteItem());
                 
@@ -340,21 +384,344 @@
                 document.getElementById('config-modal').addEventListener('click', (e) => {
                     if (e.target.id === 'config-modal') document.getElementById('config-modal').classList.remove('show');
                 });
+                
+                document.getElementById('schema-add-btn').addEventListener('click', () => this.addOrUpdateSchemaField());
+                document.getElementById('schema-cancel-edit-btn').addEventListener('click', () => this.resetSchemaForm());
+                
+                document.getElementById('schema-new-type').addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    document.getElementById('schema-options-row').classList.toggle('show', type === 'select');
+                    document.getElementById('schema-kpi-row').classList.toggle('show', type === 'number');
+                });
+
                 document.getElementById('search-input').addEventListener('input', (e) => this.renderTable(e.target.value));
+            }
+
+            // --- DATA CORE ---
+            loadLocalData() {
+                const sRaw = localStorage.getItem(this.getStorageKey('schema'));
+                const iRaw = localStorage.getItem(this.getStorageKey('items'));
+                
+                this.db.schema = sRaw ? JSON.parse(sRaw) : [];
+                // FILTER ON LOAD: Clean any potential empty objects
+                let loadedItems = iRaw ? JSON.parse(iRaw) : [];
+                this.db.items = loadedItems.filter(i => i && i.id && i.name); 
+                
+                // Initial KPI update
+                this.updateKPIs(this.db.items);
+            }
+
+            saveLocalData() {
+                localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
+                localStorage.setItem(this.getStorageKey('items'), JSON.stringify(this.db.items));
+            }
+
+            async fetchCloudData() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+                if (!apiKey || !binId) return;
+
+                this.updateSyncButton('loading');
+
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                        headers: { 'X-Master-Key': apiKey }
+                    });
+
+                    if (!res.ok) throw new Error('Fetch failed');
+
+                    const data = await res.json();
+                    const record = data.record || {};
+
+                    if (Array.isArray(record)) {
+                        // Legacy handling: filter old arrays too
+                        this.db.items = record.filter(i => i && i.id && i.name);
+                    } else {
+                        this.db.schema = record.schema || [];
+                        // CRITICAL: Filter incoming cloud items too
+                        const cloudItems = record.items || [];
+                        this.db.items = cloudItems.filter(i => i && i.id && i.name);
+                    }
+
+                    this.saveLocalData();
+                    this.renderTable(document.getElementById('search-input').value);
+                    this.updateSyncButton('success');
+
+                } catch (e) {
+                    console.error(e);
+                    this.updateSyncButton('error');
+                }
+            }
+
+            async syncToCloud() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+                if (!apiKey || !binId) return;
+
+                this.updateSyncButton('loading');
+
+                const payload = {
+                    schema: this.db.schema,
+                    items: this.db.items
+                };
+
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+                        body: JSON.stringify(payload)
+                    });
+                    this.updateSyncButton('success');
+                } catch (e) {
+                    this.updateSyncButton('error');
+                }
+            }
+
+            async createBin(apiKey) {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+                this.updateSyncButton('loading');
+
+                const payload = { schema: [], items: [] };
+
+                try {
+                    const res = await fetch('https://api.jsonbin.io/v3/b', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': apiKey,
+                            'X-Bin-Name': this.context
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) throw new Error('Create Failed');
+                    
+                    const data = await res.json();
+                    const newId = data.metadata.id;
+                    
+                    localStorage.setItem(this.getStorageKey('bin_id'), newId);
+                    this.showToast('New Database Created!');
+                    
+                    this.isProcessing = false;
+                    this.fetchCloudData();
+
+                } catch (e) {
+                    this.isProcessing = false;
+                    this.updateSyncButton('error');
+                    alert(`Error: ${e.message}`);
+                }
+            }
+
+            manualSync() {
+                this.fetchCloudData();
+                this.showToast('Checking cloud...');
+            }
+
+            checkSyncReady() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+                if (!apiKey) return;
+                if (!binId) {
+                    this.createBin(apiKey);
+                } else {
+                    this.fetchCloudData(); 
+                }
+            }
+
+            // --- SCHEMA UI & LOGIC ---
+            renderSchemaList() {
+                const list = document.getElementById('schema-list');
+                if (this.db.schema.length === 0) {
+                    list.innerHTML = '<span style="font-size:11px; color:#94a3b8; font-style:italic; text-align:center;">No schema defined. Add fields below.</span>';
+                    return;
+                }
+                list.innerHTML = this.db.schema.map(field => {
+                    let meta = field.type.toUpperCase();
+                    if(field.type === 'number' && field.kpiMode) meta += ` (${field.kpiMode.toUpperCase()})`;
+                    meta += ` | ${field.showInList ? 'VISIBLE' : 'HIDDEN'}`;
+                    
+                    return `
+                    <div class="schema-item">
+                        <div class="schema-info">
+                            <span class="schema-name">${field.key}</span>
+                            <span class="schema-meta">${meta}</span>
+                        </div>
+                        <div class="schema-actions">
+                            <span class="schema-icon edit" onclick="app.editSchemaField('${field.key}')">✎</span>
+                            <span class="schema-icon delete" onclick="app.removeSchemaField('${field.key}')">✕</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            editSchemaField(key) {
+                const field = this.db.schema.find(f => f.key === key);
+                if(!field) return;
+
+                this.editingFieldKey = key;
+                
+                document.getElementById('schema-new-name').value = field.key;
+                document.getElementById('schema-new-type').value = field.type;
+                document.getElementById('schema-new-show').checked = field.showInList;
+                document.getElementById('schema-new-options').value = field.options ? field.options.join(', ') : '';
+                document.getElementById('schema-new-iskpi').checked = !!field.kpiMode;
+                document.getElementById('schema-new-kpiop').value = (field.kpiMode === 'avg' ? 'avg' : 'sum');
+                
+                document.getElementById('schema-options-row').classList.toggle('show', field.type === 'select');
+                document.getElementById('schema-kpi-row').classList.toggle('show', field.type === 'number');
+
+                document.getElementById('schema-box-title').textContent = 'Edit Field';
+                document.getElementById('schema-add-btn').textContent = 'Update Field';
+                document.getElementById('schema-cancel-edit-btn').style.display = 'inline-block';
+                document.getElementById('schema-editor-box').classList.add('editing');
+            }
+
+            resetSchemaForm() {
+                this.editingFieldKey = null;
+                document.getElementById('schema-new-name').value = '';
+                document.getElementById('schema-new-type').value = 'text';
+                document.getElementById('schema-new-show').checked = true;
+                document.getElementById('schema-new-options').value = '';
+                document.getElementById('schema-new-iskpi').checked = false;
+                document.getElementById('schema-new-kpiop').value = 'sum';
+                
+                document.getElementById('schema-options-row').classList.remove('show');
+                document.getElementById('schema-kpi-row').classList.remove('show');
+
+                document.getElementById('schema-box-title').textContent = 'Add New Field';
+                document.getElementById('schema-add-btn').textContent = 'Add Field';
+                document.getElementById('schema-cancel-edit-btn').style.display = 'none';
+                document.getElementById('schema-editor-box').classList.remove('editing');
+            }
+
+            addOrUpdateSchemaField() {
+                const nameInput = document.getElementById('schema-new-name');
+                const typeInput = document.getElementById('schema-new-type');
+                const showInput = document.getElementById('schema-new-show');
+                const optsInput = document.getElementById('schema-new-options');
+                
+                const isKpiInput = document.getElementById('schema-new-iskpi');
+                const kpiOpInput = document.getElementById('schema-new-kpiop');
+                
+                const key = nameInput.value.trim();
+                const type = typeInput.value;
+                const showInList = showInput.checked;
+                
+                if (!key) return;
+                
+                if (!this.editingFieldKey && this.db.schema.some(f => f.key === key)) {
+                    alert('Field already exists');
+                    return;
+                }
+                
+                const fieldDef = { key, type, showInList };
+                
+                if (type === 'select') {
+                    const opts = optsInput.value.split(',').map(s => s.trim()).filter(s => s);
+                    fieldDef.options = opts;
+                } else if (type === 'number') {
+                    if (isKpiInput.checked) {
+                        fieldDef.kpiMode = kpiOpInput.value;
+                    }
+                }
+
+                if (this.editingFieldKey) {
+                    const idx = this.db.schema.findIndex(f => f.key === this.editingFieldKey);
+                    if (idx > -1) {
+                        this.db.schema[idx] = fieldDef;
+                        
+                        if (this.editingFieldKey !== key) {
+                            this.db.items.forEach(item => {
+                                if (item[this.editingFieldKey] !== undefined) {
+                                    item[key] = item[this.editingFieldKey];
+                                    delete item[this.editingFieldKey];
+                                }
+                            });
+                            this.saveLocalData();
+                        }
+                    }
+                } else {
+                    this.db.schema.push(fieldDef);
+                }
+                
+                this.saveLocalData();
+                this.renderSchemaList();
+                this.resetSchemaForm();
+                this.renderTable(document.getElementById('search-input').value);
+                
+                setTimeout(() => this.syncToCloud(), 100);
+            }
+
+            removeSchemaField(key) {
+                if (confirm(`Delete field "${key}"?`)) {
+                    this.db.schema = this.db.schema.filter(f => f.key !== key);
+                    this.saveLocalData();
+                    this.renderSchemaList();
+                    this.renderTable(document.getElementById('search-input').value);
+                    setTimeout(() => this.syncToCloud(), 100);
+                }
+            }
+
+            // --- KPI ENGINE ---
+            updateKPIs(dataSet) {
+                // Ensure no ghosts in calculation
+                const rawData = dataSet || this.db.items;
+                const data = rawData.filter(i => i && i.id && i.name);
+
+                const container = document.getElementById('kpi-container');
+                container.innerHTML = ''; 
+
+                // 1. Record Count
+                const countHtml = `
+                    <div class="kpi-card">
+                        <div class="kpi-label">Records</div>
+                        <div class="kpi-value highlight">${data.length}</div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', countHtml);
+
+                // 2. Dynamic KPIs
+                const kpiFields = this.db.schema.filter(f => f.type === 'number' && f.kpiMode);
+                
+                kpiFields.forEach(field => {
+                    let val = 0;
+                    const values = data
+                        .map(i => parseFloat(i[field.key]))
+                        .filter(v => !isNaN(v));
+
+                    if (values.length > 0) {
+                        const sum = values.reduce((a, b) => a + b, 0);
+                        if (field.kpiMode === 'sum') {
+                            val = sum;
+                            if (val % 1 !== 0) val = val.toFixed(2);
+                        } else if (field.kpiMode === 'avg') {
+                            val = (sum / values.length).toFixed(2);
+                            if (val.endsWith('.00')) val = parseInt(val);
+                        }
+                    }
+
+                    const cardHtml = `
+                        <div class="kpi-card">
+                            <div class="kpi-label">${field.key} (${field.kpiMode.toUpperCase()})</div>
+                            <div class="kpi-value">${val}</div>
+                        </div>`;
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
             }
 
             // --- CSV ---
             exportCSV() {
-                if (this.items.length === 0) {
+                if (this.db.items.length === 0) {
                     this.showToast('No data to export');
                     return;
                 }
-                const dynamicKeys = this.getSchemaKeys();
-                const headers = ['name', ...dynamicKeys]; 
+                const fieldKeys = this.db.schema.map(f => f.key);
+                const headers = ['name', ...fieldKeys]; 
                 const csvRows = [];
                 csvRows.push(headers.map(h => `"${h}"`).join(';'));
 
-                this.items.forEach(item => {
+                this.db.items.forEach(item => {
+                    if (!item.id || !item.name) return; // Skip ghosts on export
                     const row = headers.map(header => {
                         let val = item[header] || '';
                         val = String(val).replace(/"/g, '""'); 
@@ -386,6 +753,7 @@
 
                         const headers = rows[0].split(';').map(h => h.trim().replace(/^"|"$/g, ''));
                         let importedCount = 0;
+                        let newFieldsDetected = false;
 
                         for (let i = 1; i < rows.length; i++) {
                             const values = [];
@@ -401,7 +769,11 @@
 
                             const newItem = {};
                             headers.forEach((h, index) => {
-                                if (h === 'id' || h === 'lastModified') return; 
+                                if (h === 'id' || h === 'lastModified') return;
+                                if (h !== 'name' && !this.db.schema.some(f => f.key === h)) {
+                                    this.db.schema.push({ key: h, type: 'text', showInList: true });
+                                    newFieldsDetected = true;
+                                }
                                 let cleanVal = values[index] ? values[index].trim() : '';
                                 if(cleanVal.startsWith('"') && cleanVal.endsWith('"')) cleanVal = cleanVal.substring(1, cleanVal.length-1);
                                 cleanVal = cleanVal.replace(/""/g, '"');
@@ -411,11 +783,12 @@
                             newItem.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
                             if (!newItem.name) newItem.name = 'Imported Record';
                             newItem.lastModified = new Date().toISOString();
-                            this.items.push(newItem);
+                            this.db.items.push(newItem);
                             importedCount++;
                         }
-                        this.saveLocalData();
-                        this.renderTable();
+                        
+                        this.saveLocalData(); // Saves both schema and sanitized items
+                        this.renderTable(document.getElementById('search-input').value);
                         this.showToast(`Imported ${importedCount} records`);
                         setTimeout(() => this.syncToCloud(), 500);
                     } catch (err) {
@@ -427,27 +800,16 @@
             }
 
             deleteAllItems() {
-                if (confirm('WARNING: Delete ALL records?\n\nThis cannot be undone.')) {
-                    this.items = [];
-                    this.saveLocalData();
-                    this.renderTable();
-                    this.showToast('All records deleted');
-                    this.syncToCloud();
+                if (confirm('WARNING: This will DESTROY ALL records locally and in the cloud.\n\nAre you sure?')) {
+                    if (confirm('Double check: This action cannot be undone.')) {
+                        this.db.items = [];
+                        this.saveLocalData();
+                        this.renderTable();
+                        this.showToast('All records destroyed');
+                        this.syncToCloud();
+                    }
                 }
             }
-
-            // --- Data & Core ---
-            loadLocalData() {
-                const raw = localStorage.getItem(this.getStorageKey('items'));
-                if (raw) {
-                    try {
-                        const parsed = JSON.parse(raw);
-                        this.items = parsed.filter(i => i && i.id && Object.keys(i).length > 0);
-                        if (this.items.length !== parsed.length) this.saveLocalData();
-                    } catch (e) { this.items = []; }
-                } else { this.items = []; }
-            }
-            saveLocalData() { localStorage.setItem(this.getStorageKey('items'), JSON.stringify(this.items)); }
 
             showView(viewName) {
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -455,20 +817,11 @@
                 const headerActions = document.querySelector('.header-actions');
                 if (viewName === 'list') {
                     headerActions.style.display = 'flex';
-                    this.renderTable();
+                    const searchVal = document.getElementById('search-input').value;
+                    this.renderTable(searchVal);
                 } else {
                     headerActions.style.display = 'none';
                 }
-            }
-
-            getSchemaKeys() {
-                const keys = new Set();
-                this.items.forEach(item => {
-                    Object.keys(item).forEach(k => {
-                        if (k !== 'id' && k !== 'lastModified' && k !== 'name') keys.add(k);
-                    });
-                });
-                return Array.from(keys).sort();
             }
 
             renderTable(filterText = '') {
@@ -477,12 +830,13 @@
                 const emptyState = document.getElementById('empty-state');
                 const tableContainer = document.querySelector('.table-container');
 
-                let displayItems = this.items;
-                if (filterText) {
-                    displayItems = this.items.filter(item => 
-                        Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()))
-                    );
-                }
+                // Filter on valid items + search
+                let displayItems = this.db.items.filter(item => 
+                    item && item.id && item.name &&
+                    Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()))
+                );
+
+                this.updateKPIs(displayItems);
 
                 if (displayItems.length === 0) {
                     tableContainer.style.display = 'none';
@@ -493,22 +847,22 @@
                 tableContainer.style.display = 'block';
                 emptyState.style.display = 'none';
 
-                const schemaKeys = this.getSchemaKeys();
+                const visibleFields = this.db.schema.filter(f => f.showInList);
                 let headerHTML = '<tr><th>Name</th>'; 
-                schemaKeys.forEach(key => headerHTML += `<th>${key}</th>`);
+                visibleFields.forEach(f => headerHTML += `<th>${f.key}</th>`);
                 headerHTML += '</tr>';
                 thead.innerHTML = headerHTML;
 
                 tbody.innerHTML = displayItems.map(item => {
-                    if (!item.id) return ''; 
                     let rowHTML = `<tr onclick="app.editItem('${item.id}')">`;
                     rowHTML += `<td><strong>${item.name || '(No Name)'}</strong></td>`;
-                    schemaKeys.forEach(key => rowHTML += `<td>${item[key] || '<span style="color:#cbd5e1">-</span>'}</td>`);
+                    visibleFields.forEach(f => rowHTML += `<td>${item[f.key] || '<span style="color:#cbd5e1">-</span>'}</td>`);
                     rowHTML += '</tr>';
                     return rowHTML;
                 }).join('');
             }
 
+            // ... (Editor, Save, Delete Logic - No changes needed as they use sanitized state) ...
             openEditor() {
                 this.currentItemId = null;
                 document.getElementById('form-title').textContent = 'New Record';
@@ -519,7 +873,7 @@
             }
 
             editItem(id) {
-                const item = this.items.find(i => i.id === id);
+                const item = this.db.items.find(i => i.id === id);
                 if (!item) return;
                 this.currentItemId = id;
                 document.getElementById('form-title').textContent = 'Edit Record';
@@ -532,55 +886,66 @@
             renderDynamicFormFields(itemValues) {
                 const container = document.getElementById('dynamic-fields-container');
                 container.innerHTML = '';
-                const schemaKeys = this.getSchemaKeys();
-                Object.keys(itemValues).forEach(k => {
-                    if(k !== 'id' && k !== 'name' && k !== 'lastModified' && !schemaKeys.includes(k)) schemaKeys.push(k);
+                this.db.schema.forEach(field => {
+                    const containerDiv = document.createElement('div');
+                    containerDiv.className = 'form-group';
+                    const label = document.createElement('label');
+                    label.className = 'form-label';
+                    label.textContent = field.key;
+                    containerDiv.appendChild(label);
+                    if (field.type === 'select' && field.options) {
+                        const select = document.createElement('select');
+                        select.className = 'form-select';
+                        select.name = `custom_${field.key}`;
+                        select.dataset.key = field.key;
+                        const defOpt = document.createElement('option');
+                        defOpt.value = "";
+                        defOpt.text = "- Select -";
+                        select.appendChild(defOpt);
+                        field.options.forEach(opt => {
+                            const option = document.createElement('option');
+                            option.value = opt;
+                            option.text = opt;
+                            if (itemValues[field.key] === opt) option.selected = true;
+                            select.appendChild(option);
+                        });
+                        containerDiv.appendChild(select);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = field.type === 'number' ? 'number' : 'text';
+                        if(field.type === 'number') input.step = 'any'; 
+                        input.className = 'form-input';
+                        input.name = `custom_${field.key}`;
+                        input.dataset.key = field.key;
+                        input.value = itemValues[field.key] || '';
+                        containerDiv.appendChild(input);
+                    }
+                    container.appendChild(containerDiv);
                 });
-                schemaKeys.forEach(key => this.createFieldInput(key, itemValues[key] || ''));
-            }
-
-            createFieldInput(key, value = '') {
-                const container = document.getElementById('dynamic-fields-container');
-                const div = document.createElement('div');
-                div.className = 'form-group dynamic-field';
-                div.innerHTML = `<label class="form-label">${key}</label><input type="text" class="form-input" name="custom_${key}" data-key="${key}" value="${value}">`;
-                container.appendChild(div);
-            }
-
-            addNewFieldInput() {
-                const keyInput = document.getElementById('new-field-key');
-                const key = keyInput.value.trim();
-                if (!key) return;
-                if (document.querySelector(`input[data-key="${key}"]`)) {
-                    this.showToast('Field already exists');
-                    return;
-                }
-                this.createFieldInput(key);
-                keyInput.value = '';
             }
 
             saveItem(e) {
                 e.preventDefault();
                 const name = document.getElementById('field-name').value;
-                const dynamicInputs = document.querySelectorAll('#dynamic-fields-container input');
-                
+                const dynamicInputs = document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select');
                 const newItem = {
                     id: this.currentItemId || Date.now().toString(),
                     name: name,
                     lastModified: new Date().toISOString()
                 };
-
-                dynamicInputs.forEach(input => {
-                    if (input.value.trim() !== '') newItem[input.dataset.key] = input.value;
-                });
-
                 if (this.currentItemId) {
-                    const index = this.items.findIndex(i => i.id === this.currentItemId);
-                    this.items[index] = newItem;
-                } else {
-                    this.items.push(newItem);
+                    const existing = this.db.items.find(i => i.id === this.currentItemId);
+                    Object.assign(newItem, existing, newItem); 
                 }
-
+                dynamicInputs.forEach(input => {
+                    newItem[input.dataset.key] = input.value;
+                });
+                if (this.currentItemId) {
+                    const index = this.db.items.findIndex(i => i.id === this.currentItemId);
+                    this.db.items[index] = newItem;
+                } else {
+                    this.db.items.push(newItem);
+                }
                 this.saveLocalData();
                 this.showToast('Saved locally');
                 this.showView('list');
@@ -589,7 +954,7 @@
 
             deleteItem() {
                 if (!this.currentItemId || !confirm('Delete this record?')) return;
-                this.items = this.items.filter(i => i.id !== this.currentItemId);
+                this.db.items = this.db.items.filter(i => i.id !== this.currentItemId);
                 this.saveLocalData();
                 this.showToast('Record deleted');
                 this.showView('list');
@@ -601,6 +966,7 @@
                 document.getElementById('modal-context').textContent = this.context;
                 document.getElementById('conf-api-key').value = localStorage.getItem(this.getStorageKey('api_key')) || '';
                 document.getElementById('conf-bin-id').value = localStorage.getItem(this.getStorageKey('bin_id')) || '';
+                this.renderSchemaList(); 
                 modal.classList.add('show');
             }
 
@@ -618,17 +984,6 @@
                 this.checkSyncReady();
             }
 
-            checkSyncReady() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
-                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
-                if (!apiKey) return;
-                if (!binId) {
-                    this.createBin(apiKey);
-                } else {
-                    this.fetchCloudData(); 
-                }
-            }
-
             updateSyncButton(state) {
                 const btn = document.getElementById('refresh-btn');
                 btn.className = 'btn'; 
@@ -642,109 +997,6 @@
                     btn.textContent = '...';
                 } else {
                     btn.textContent = '↻ SYNC';
-                }
-            }
-
-            async createBin(apiKey) {
-                if (this.isProcessing) return;
-                this.isProcessing = true;
-                this.updateSyncButton('loading');
-                try {
-                    const res = await fetch('https://api.jsonbin.io/v3/b', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': apiKey,
-                            'X-Bin-Name': this.context
-                        },
-                        body: JSON.stringify(this.items.length ? this.items : [])
-                    });
-                    if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.message || 'Create Failed');
-                    }
-                    const data = await res.json();
-                    const newId = data.metadata.id;
-                    localStorage.setItem(this.getStorageKey('bin_id'), newId);
-                    this.showToast('New Database Created!');
-                    this.isProcessing = false;
-                    this.fetchCloudData();
-                } catch (e) {
-                    console.error(e);
-                    this.isProcessing = false;
-                    this.updateSyncButton('error');
-                    alert(`Error: ${e.message}. Check your API Key.`);
-                }
-            }
-
-            manualSync() {
-                this.fetchCloudData();
-                this.showToast('Checking cloud...');
-            }
-
-            async fetchCloudData() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
-                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
-                if (!apiKey || !binId) return;
-                this.updateSyncButton('loading');
-                try {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-                        headers: { 'X-Master-Key': apiKey }
-                    });
-                    if (!res.ok) throw new Error('Fetch failed');
-                    const data = await res.json();
-                    const cloudItems = data.record || [];
-                    const hasChanges = this.mergeItems(cloudItems);
-                    if (hasChanges) {
-                        this.saveLocalData();
-                        this.renderTable();
-                        this.showToast('Updated from cloud');
-                        await this.syncToCloud();
-                    } else {
-                        this.updateSyncButton('success');
-                    }
-                } catch (e) {
-                    console.error(e);
-                    this.updateSyncButton('error');
-                }
-            }
-
-            mergeItems(cloudItems) {
-                let changed = false;
-                const cleanCloudItems = Array.isArray(cloudItems) ? cloudItems.filter(i => i && i.id) : [];
-                if (cleanCloudItems.length === 0 && this.items.length > 0) return false; 
-                const localMap = new Map(this.items.map(i => [i.id, i]));
-                cleanCloudItems.forEach(cItem => {
-                    const lItem = localMap.get(cItem.id);
-                    if (!lItem) {
-                        this.items.push(cItem);
-                        changed = true;
-                    } else {
-                        const lTime = new Date(lItem.lastModified).getTime();
-                        const cTime = new Date(cItem.lastModified).getTime();
-                        if (cTime > lTime) {
-                            Object.assign(lItem, cItem);
-                            changed = true;
-                        }
-                    }
-                });
-                return changed;
-            }
-
-            async syncToCloud() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
-                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
-                if (!apiKey || !binId) return;
-                this.updateSyncButton('loading');
-                try {
-                    await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
-                        body: JSON.stringify(this.items)
-                    });
-                    this.updateSyncButton('success');
-                } catch (e) {
-                    this.updateSyncButton('error');
                 }
             }
 

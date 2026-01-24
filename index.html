@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DATA</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-light: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: none; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--surface); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px; }
+        
+        .header-info h1 { 
+            font-size: 18px; 
+            text-transform: uppercase; 
+            margin: 0; 
+            letter-spacing: 0.5px; 
+            cursor: pointer;
+            display: inline-block;
+            transition: color 0.2s;
+        }
+        .header-info h1:hover { color: var(--primary); text-decoration: underline; }
+        .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* Buttons */
+        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn:hover { background: #f1f5f9; }
+        
+        .btn-primary { background: var(--primary); color: white; border: none; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        
+        .btn-danger { background: white; color: var(--danger); border-color: #fca5a5; }
+        .btn-danger:hover { background: #fef2f2; color: var(--danger); }
+        
+        .btn-danger-solid { background: var(--danger); color: white; border: none; }
+        .btn-danger-solid:hover { background: var(--danger-hover); }
+
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
+
+        /* Sync Button States */
+        .btn-sync-success { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .btn-sync-error { background-color: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
+
+        /* Views */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Table */
+        .table-container { background: var(--surface); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-light); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+        tr:hover { background: #f8fafc; cursor: pointer; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Forms */
+        .form-card { background: var(--surface); padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: 500; color: var(--text-light); font-size: 12px; }
+        .form-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+        .dynamic-fields-area { border-top: 1px dashed var(--border); margin-top: 20px; padding-top: 20px; }
+        .field-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+
+        /* Search */
+        .search-bar { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+
+        /* Modal */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .overlay.show { display: flex; }
+        .modal { background: var(--surface); padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+
+        /* Startup Screen & Layout Changes */
+        .startup-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .startup-card { background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        
+        .startup-input-row { display: flex; gap: 10px; margin-bottom: 25px; } /* Increased margin bottom for spacing */
+        .startup-input-row .form-input { text-align: left; margin-bottom: 0; flex: 1; }
+        .startup-input-row .btn { width: auto; padding: 0 20px; }
+
+        /* Updated Recent Area: No border, No label, Centered */
+        .recent-area { margin-top: 0; text-align: center; }
+        
+        .recent-list { display: flex; flex-direction: column; gap: 8px; }
+        .recent-btn { 
+            width: 100%; 
+            text-align: center;      /* Centered Text */
+            justify-content: center; /* Centered Flex Content */
+            padding: 12px 15px;
+            font-size: 14px;
+            background: #fff;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .recent-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 6px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 3000; }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="startup-screen" class="startup-screen" style="display: none;">
+        <div class="startup-card">
+            <h2 style="margin-bottom: 5px;">Select Context</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px; font-size: 13px;">Enter a context name to load data.</p>
+            
+            <div class="startup-input-row">
+                <input type="text" id="startup-input" class="form-input" placeholder="CONTEXT NAME" style="text-transform: uppercase;">
+                <button id="startup-btn" class="btn btn-primary">LOAD</button>
+            </div>
+
+            <div id="recent-area" class="recent-area" style="display: none;">
+                <div id="recent-list" class="recent-list">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="app-container">
+        <div class="header">
+            <div class="header-info">
+                <h1 id="app-title" title="Click to switch context">DATA MANAGER</h1>
+            </div>
+            
+            <div class="header-actions">
+                <button class="btn btn-danger-solid" id="delete-all-btn" title="Delete All Records">DELETE ALL</button>
+                <div style="width: 1px; background: #e2e8f0; margin: 0 5px;"></div>
+                <button class="btn" id="export-btn" title="Download CSV">EXPORT</button>
+                <button class="btn" id="import-btn" title="Upload CSV">IMPORT</button>
+                <div style="width: 1px; background: #e2e8f0; margin: 0 5px;"></div>
+                <button class="btn" id="refresh-btn" title="Sync Status">↻ SYNC</button>
+                <button class="btn" id="config-btn">CONFIG</button>
+                <button class="btn btn-primary" id="add-btn">NEW</button>
+            </div>
+        </div>
+
+        <div id="list-view" class="view-section active">
+            <input type="text" class="search-bar" id="search-input" placeholder="Search records...">
+            <div class="table-container">
+                <table id="data-table">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="empty-state" style="text-align: center; padding: 40px; display: none;">
+                <p style="color: var(--text-light);">No records found locally.</p>
+            </div>
+        </div>
+
+        <div id="edit-view" class="view-section">
+            <div class="form-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <h2 id="form-title">Edit Record</h2>
+                    <button class="btn btn-sm" id="back-btn">Cancel</button>
+                </div>
+                <form id="item-form">
+                    <div class="form-group">
+                        <label class="form-label">Name (Primary Identifier)</label>
+                        <input type="text" class="form-input" id="field-name" required>
+                    </div>
+                    <div id="dynamic-fields-container"></div>
+                    <div class="dynamic-fields-area">
+                        <label class="form-label">Add New Field to Schema</label>
+                        <div class="field-row">
+                            <input type="text" class="form-input" id="new-field-key" placeholder="Field Name (e.g. Phone)">
+                            <button type="button" class="btn" id="add-field-btn">Add</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Save Record</button>
+                        <button type="button" class="btn btn-danger" id="delete-btn" style="display: none;">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="file-import-input" accept=".csv" style="display: none;">
+
+    <div class="overlay" id="config-modal">
+        <div class="modal">
+            <h3 style="margin-bottom: 5px;">API Configuration</h3>
+            <p style="font-size: 12px; margin-bottom: 20px; color: var(--text-light);">
+                Context: <b><span id="modal-context"></span></b>
+            </p>
+            <div class="form-group">
+                <label class="form-label">JSONBin API Key (X-Master-Key)</label>
+                <input type="password" class="form-input" id="conf-api-key" placeholder="$2a$10...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bin ID (Optional)</label>
+                <input type="text" class="form-input" id="conf-bin-id" placeholder="65a...">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" id="cancel-config" style="flex: 1;">Cancel</button>
+                <button class="btn btn-primary" id="save-config" style="flex: 1;">Save & Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Message</div>
+
+    <script>
+        class ContextApp {
+            constructor() {
+                this.context = null;
+                this.items = [];
+                this.currentItemId = null; 
+                this.isProcessing = false;
+                this.eventsBound = false;
+                this.RECENT_KEY = 'global_recent_contexts'; 
+                this.init();
+            }
+
+            init() {
+                const params = new URLSearchParams(window.location.search);
+                const urlContext = params.get('context');
+                if (urlContext) {
+                    this.loadContext(urlContext);
+                } else {
+                    this.showStartupScreen();
+                }
+            }
+
+            // --- STARTUP & RECENT CONTEXTS ---
+            showStartupScreen() {
+                const screen = document.getElementById('startup-screen');
+                const container = document.getElementById('app-container');
+                const input = document.getElementById('startup-input');
+                const btn = document.getElementById('startup-btn');
+
+                document.title = 'DATA'; 
+                container.style.display = 'none';
+                screen.style.display = 'flex';
+                input.value = ''; 
+                input.focus();
+
+                this.renderRecents(); 
+
+                const handleStart = () => {
+                    const val = input.value.trim().toUpperCase();
+                    if (val) {
+                        this.switchUrlAndLoad(val);
+                    }
+                };
+                btn.onclick = handleStart;
+                input.onkeypress = (e) => { if(e.key === 'Enter') handleStart(); };
+            }
+
+            renderRecents() {
+                const recentList = document.getElementById('recent-list');
+                const recentArea = document.getElementById('recent-area');
+                const recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
+
+                if (recents.length === 0) {
+                    recentArea.style.display = 'none';
+                    return;
+                }
+
+                recentArea.style.display = 'block';
+                recentList.innerHTML = recents.map(ctx => 
+                    `<button class="btn recent-btn" onclick="app.switchUrlAndLoad('${ctx}')">${ctx}</button>`
+                ).join('');
+            }
+
+            addToRecents(context) {
+                let recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
+                recents = recents.filter(c => c !== context);
+                recents.unshift(context);
+                recents = recents.slice(0, 5); // Keep top 5
+                localStorage.setItem(this.RECENT_KEY, JSON.stringify(recents));
+            }
+
+            switchUrlAndLoad(val) {
+                const screen = document.getElementById('startup-screen');
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('context', val);
+                window.history.pushState({}, '', newUrl);
+                screen.style.display = 'none';
+                this.loadContext(val);
+            }
+
+            loadContext(contextName) {
+                this.context = contextName;
+                this.addToRecents(this.context); 
+
+                document.title = `DATA ${this.context}`;
+                document.getElementById('app-title').textContent = `${this.context} DATA`;
+                document.getElementById('app-container').style.display = 'block';
+
+                this.items = [];
+                this.updateSyncButton('reset');
+                this.bindEvents();
+                this.loadLocalData();
+                this.renderTable();
+                this.checkSyncReady(); 
+            }
+
+            getStorageKey(key) { return `ctx_${this.context}_${key}`; }
+
+            bindEvents() {
+                if (this.eventsBound) return;
+                this.eventsBound = true;
+
+                document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
+                document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
+                document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
+                document.getElementById('refresh-btn').addEventListener('click', () => this.manualSync()); 
+                document.getElementById('back-btn').addEventListener('click', () => this.showView('list'));
+                document.getElementById('add-field-btn').addEventListener('click', () => this.addNewFieldInput());
+                document.getElementById('item-form').addEventListener('submit', (e) => this.saveItem(e));
+                document.getElementById('delete-btn').addEventListener('click', () => this.deleteItem());
+                
+                document.getElementById('delete-all-btn').addEventListener('click', () => this.deleteAllItems());
+                document.getElementById('export-btn').addEventListener('click', () => this.exportCSV());
+                document.getElementById('import-btn').addEventListener('click', () => document.getElementById('file-import-input').click());
+                document.getElementById('file-import-input').addEventListener('change', (e) => this.importCSV(e));
+
+                document.getElementById('save-config').addEventListener('click', () => this.saveConfiguration());
+                document.getElementById('cancel-config').addEventListener('click', () => document.getElementById('config-modal').classList.remove('show'));
+                document.getElementById('config-modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'config-modal') document.getElementById('config-modal').classList.remove('show');
+                });
+                document.getElementById('search-input').addEventListener('input', (e) => this.renderTable(e.target.value));
+            }
+
+            // --- CSV ---
+            exportCSV() {
+                if (this.items.length === 0) {
+                    this.showToast('No data to export');
+                    return;
+                }
+                const dynamicKeys = this.getSchemaKeys();
+                const headers = ['name', ...dynamicKeys]; 
+                const csvRows = [];
+                csvRows.push(headers.map(h => `"${h}"`).join(';'));
+
+                this.items.forEach(item => {
+                    const row = headers.map(header => {
+                        let val = item[header] || '';
+                        val = String(val).replace(/"/g, '""'); 
+                        return `"${val}"`;
+                    });
+                    csvRows.push(row.join(';'));
+                });
+
+                const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden', '');
+                a.setAttribute('href', url);
+                a.setAttribute('download', `${this.context}_data.csv`);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            importCSV(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const text = e.target.result;
+                        const rows = text.split('\n').map(r => r.trim()).filter(r => r);
+                        if (rows.length < 2) throw new Error('Invalid CSV');
+
+                        const headers = rows[0].split(';').map(h => h.trim().replace(/^"|"$/g, ''));
+                        let importedCount = 0;
+
+                        for (let i = 1; i < rows.length; i++) {
+                            const values = [];
+                            let inQuote = false;
+                            let val = '';
+                            for (let char of rows[i]) {
+                                if (char === '"' && inQuote && rows[i][rows[i].indexOf(char)+1] === '"') { val += '"'; } 
+                                else if (char === '"') { inQuote = !inQuote; }
+                                else if (char === ';' && !inQuote) { values.push(val); val = ''; }
+                                else { val += char; }
+                            }
+                            values.push(val);
+
+                            const newItem = {};
+                            headers.forEach((h, index) => {
+                                if (h === 'id' || h === 'lastModified') return; 
+                                let cleanVal = values[index] ? values[index].trim() : '';
+                                if(cleanVal.startsWith('"') && cleanVal.endsWith('"')) cleanVal = cleanVal.substring(1, cleanVal.length-1);
+                                cleanVal = cleanVal.replace(/""/g, '"');
+                                newItem[h] = cleanVal;
+                            });
+
+                            newItem.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                            if (!newItem.name) newItem.name = 'Imported Record';
+                            newItem.lastModified = new Date().toISOString();
+                            this.items.push(newItem);
+                            importedCount++;
+                        }
+                        this.saveLocalData();
+                        this.renderTable();
+                        this.showToast(`Imported ${importedCount} records`);
+                        setTimeout(() => this.syncToCloud(), 500);
+                    } catch (err) {
+                        alert('Error importing CSV.');
+                    }
+                    event.target.value = '';
+                };
+                reader.readAsText(file);
+            }
+
+            deleteAllItems() {
+                if (confirm('WARNING: Delete ALL records?\n\nThis cannot be undone.')) {
+                    this.items = [];
+                    this.saveLocalData();
+                    this.renderTable();
+                    this.showToast('All records deleted');
+                    this.syncToCloud();
+                }
+            }
+
+            // --- Data & Core ---
+            loadLocalData() {
+                const raw = localStorage.getItem(this.getStorageKey('items'));
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        this.items = parsed.filter(i => i && i.id && Object.keys(i).length > 0);
+                        if (this.items.length !== parsed.length) this.saveLocalData();
+                    } catch (e) { this.items = []; }
+                } else { this.items = []; }
+            }
+            saveLocalData() { localStorage.setItem(this.getStorageKey('items'), JSON.stringify(this.items)); }
+
+            showView(viewName) {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                document.getElementById(`${viewName}-view`).classList.add('active');
+                const headerActions = document.querySelector('.header-actions');
+                if (viewName === 'list') {
+                    headerActions.style.display = 'flex';
+                    this.renderTable();
+                } else {
+                    headerActions.style.display = 'none';
+                }
+            }
+
+            getSchemaKeys() {
+                const keys = new Set();
+                this.items.forEach(item => {
+                    Object.keys(item).forEach(k => {
+                        if (k !== 'id' && k !== 'lastModified' && k !== 'name') keys.add(k);
+                    });
+                });
+                return Array.from(keys).sort();
+            }
+
+            renderTable(filterText = '') {
+                const tbody = document.querySelector('#data-table tbody');
+                const thead = document.querySelector('#data-table thead');
+                const emptyState = document.getElementById('empty-state');
+                const tableContainer = document.querySelector('.table-container');
+
+                let displayItems = this.items;
+                if (filterText) {
+                    displayItems = this.items.filter(item => 
+                        Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()))
+                    );
+                }
+
+                if (displayItems.length === 0) {
+                    tableContainer.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                tableContainer.style.display = 'block';
+                emptyState.style.display = 'none';
+
+                const schemaKeys = this.getSchemaKeys();
+                let headerHTML = '<tr><th>Name</th>'; 
+                schemaKeys.forEach(key => headerHTML += `<th>${key}</th>`);
+                headerHTML += '</tr>';
+                thead.innerHTML = headerHTML;
+
+                tbody.innerHTML = displayItems.map(item => {
+                    if (!item.id) return ''; 
+                    let rowHTML = `<tr onclick="app.editItem('${item.id}')">`;
+                    rowHTML += `<td><strong>${item.name || '(No Name)'}</strong></td>`;
+                    schemaKeys.forEach(key => rowHTML += `<td>${item[key] || '<span style="color:#cbd5e1">-</span>'}</td>`);
+                    rowHTML += '</tr>';
+                    return rowHTML;
+                }).join('');
+            }
+
+            openEditor() {
+                this.currentItemId = null;
+                document.getElementById('form-title').textContent = 'New Record';
+                document.getElementById('field-name').value = '';
+                document.getElementById('delete-btn').style.display = 'none';
+                this.renderDynamicFormFields({}); 
+                this.showView('edit');
+            }
+
+            editItem(id) {
+                const item = this.items.find(i => i.id === id);
+                if (!item) return;
+                this.currentItemId = id;
+                document.getElementById('form-title').textContent = 'Edit Record';
+                document.getElementById('field-name').value = item.name;
+                document.getElementById('delete-btn').style.display = 'block';
+                this.renderDynamicFormFields(item);
+                this.showView('edit');
+            }
+
+            renderDynamicFormFields(itemValues) {
+                const container = document.getElementById('dynamic-fields-container');
+                container.innerHTML = '';
+                const schemaKeys = this.getSchemaKeys();
+                Object.keys(itemValues).forEach(k => {
+                    if(k !== 'id' && k !== 'name' && k !== 'lastModified' && !schemaKeys.includes(k)) schemaKeys.push(k);
+                });
+                schemaKeys.forEach(key => this.createFieldInput(key, itemValues[key] || ''));
+            }
+
+            createFieldInput(key, value = '') {
+                const container = document.getElementById('dynamic-fields-container');
+                const div = document.createElement('div');
+                div.className = 'form-group dynamic-field';
+                div.innerHTML = `<label class="form-label">${key}</label><input type="text" class="form-input" name="custom_${key}" data-key="${key}" value="${value}">`;
+                container.appendChild(div);
+            }
+
+            addNewFieldInput() {
+                const keyInput = document.getElementById('new-field-key');
+                const key = keyInput.value.trim();
+                if (!key) return;
+                if (document.querySelector(`input[data-key="${key}"]`)) {
+                    this.showToast('Field already exists');
+                    return;
+                }
+                this.createFieldInput(key);
+                keyInput.value = '';
+            }
+
+            saveItem(e) {
+                e.preventDefault();
+                const name = document.getElementById('field-name').value;
+                const dynamicInputs = document.querySelectorAll('#dynamic-fields-container input');
+                
+                const newItem = {
+                    id: this.currentItemId || Date.now().toString(),
+                    name: name,
+                    lastModified: new Date().toISOString()
+                };
+
+                dynamicInputs.forEach(input => {
+                    if (input.value.trim() !== '') newItem[input.dataset.key] = input.value;
+                });
+
+                if (this.currentItemId) {
+                    const index = this.items.findIndex(i => i.id === this.currentItemId);
+                    this.items[index] = newItem;
+                } else {
+                    this.items.push(newItem);
+                }
+
+                this.saveLocalData();
+                this.showToast('Saved locally');
+                this.showView('list');
+                setTimeout(() => this.syncToCloud(), 100);
+            }
+
+            deleteItem() {
+                if (!this.currentItemId || !confirm('Delete this record?')) return;
+                this.items = this.items.filter(i => i.id !== this.currentItemId);
+                this.saveLocalData();
+                this.showToast('Record deleted');
+                this.showView('list');
+                setTimeout(() => this.syncToCloud(), 100);
+            }
+
+            openConfig() {
+                const modal = document.getElementById('config-modal');
+                document.getElementById('modal-context').textContent = this.context;
+                document.getElementById('conf-api-key').value = localStorage.getItem(this.getStorageKey('api_key')) || '';
+                document.getElementById('conf-bin-id').value = localStorage.getItem(this.getStorageKey('bin_id')) || '';
+                modal.classList.add('show');
+            }
+
+            saveConfiguration() {
+                const apiKey = document.getElementById('conf-api-key').value.trim();
+                const binId = document.getElementById('conf-bin-id').value.trim();
+                if (apiKey) localStorage.setItem(this.getStorageKey('api_key'), apiKey);
+                if (binId) localStorage.setItem(this.getStorageKey('bin_id'), binId);
+                else {
+                    const oldBin = localStorage.getItem(this.getStorageKey('bin_id'));
+                    if(!oldBin) localStorage.removeItem(this.getStorageKey('bin_id'));
+                }
+                document.getElementById('config-modal').classList.remove('show');
+                this.showToast('Configuration saved');
+                this.checkSyncReady();
+            }
+
+            checkSyncReady() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+                if (!apiKey) return;
+                if (!binId) {
+                    this.createBin(apiKey);
+                } else {
+                    this.fetchCloudData(); 
+                }
+            }
+
+            updateSyncButton(state) {
+                const btn = document.getElementById('refresh-btn');
+                btn.className = 'btn'; 
+                if (state === 'success') {
+                    btn.classList.add('btn-sync-success');
+                    btn.textContent = '✔ SYNC';
+                } else if (state === 'error') {
+                    btn.classList.add('btn-sync-error');
+                    btn.textContent = '✖ SYNC';
+                } else if (state === 'loading') {
+                    btn.textContent = '...';
+                } else {
+                    btn.textContent = '↻ SYNC';
+                }
+            }
+
+            async createBin(apiKey) {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+                this.updateSyncButton('loading');
+                try {
+                    const res = await fetch('https://api.jsonbin.io/v3/b', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': apiKey,
+                            'X-Bin-Name': this.context
+                        },
+                        body: JSON.stringify(this.items.length ? this.items : [])
+                    });
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.message || 'Create Failed');
+                    }
+                    const data = await res.json();
+                    const newId = data.metadata.id;
+                    localStorage.setItem(this.getStorageKey('bin_id'), newId);
+                    this.showToast('New Database Created!');
+                    this.isProcessing = false;
+                    this.fetchCloudData();
+                } catch (e) {
+                    console.error(e);
+                    this.isProcessing = false;
+                    this.updateSyncButton('error');
+                    alert(`Error: ${e.message}. Check your API Key.`);
+                }
+            }
+
+            manualSync() {
+                this.fetchCloudData();
+                this.showToast('Checking cloud...');
+            }
+
+            async fetchCloudData() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+                if (!apiKey || !binId) return;
+                this.updateSyncButton('loading');
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                        headers: { 'X-Master-Key': apiKey }
+                    });
+                    if (!res.ok) throw new Error('Fetch failed');
+                    const data = await res.json();
+                    const cloudItems = data.record || [];
+                    const hasChanges = this.mergeItems(cloudItems);
+                    if (hasChanges) {
+                        this.saveLocalData();
+                        this.renderTable();
+                        this.showToast('Updated from cloud');
+                        await this.syncToCloud();
+                    } else {
+                        this.updateSyncButton('success');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    this.updateSyncButton('error');
+                }
+            }
+
+            mergeItems(cloudItems) {
+                let changed = false;
+                const cleanCloudItems = Array.isArray(cloudItems) ? cloudItems.filter(i => i && i.id) : [];
+                if (cleanCloudItems.length === 0 && this.items.length > 0) return false; 
+                const localMap = new Map(this.items.map(i => [i.id, i]));
+                cleanCloudItems.forEach(cItem => {
+                    const lItem = localMap.get(cItem.id);
+                    if (!lItem) {
+                        this.items.push(cItem);
+                        changed = true;
+                    } else {
+                        const lTime = new Date(lItem.lastModified).getTime();
+                        const cTime = new Date(cItem.lastModified).getTime();
+                        if (cTime > lTime) {
+                            Object.assign(lItem, cItem);
+                            changed = true;
+                        }
+                    }
+                });
+                return changed;
+            }
+
+            async syncToCloud() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+                if (!apiKey || !binId) return;
+                this.updateSyncButton('loading');
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+                        body: JSON.stringify(this.items)
+                    });
+                    this.updateSyncButton('success');
+                } catch (e) {
+                    this.updateSyncButton('error');
+                }
+            }
+
+            showToast(msg) {
+                const t = document.getElementById('toast');
+                t.textContent = msg;
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
+        }
+        const app = new ContextApp();
+    </script>
+</body>
+</html>

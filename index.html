@@ -55,6 +55,8 @@
         .btn-danger:hover { background: #fef2f2; color: var(--danger); }
         .btn-danger-solid { background: var(--danger); color: white; border: none; }
         .btn-danger-solid:hover { background: var(--danger-hover); }
+        .btn-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .btn-info:hover { background: #bae6fd; }
         .btn-sm { padding: 4px 8px; font-size: 11px; min-width: auto; }
         
         /* Schema Manager Styles */
@@ -198,7 +200,10 @@
 
     <div class="overlay" id="config-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 5px;">Configuration</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Configuration</h3>
+                <button class="btn btn-info btn-sm" id="share-config-btn" title="Generate Share Link">SHARE LINK 🔗</button>
+            </div>
             <p style="font-size: 12px; margin-bottom: 20px; color: var(--text-light);">
                 Context: <b><span id="modal-context"></span></b>
             </p>
@@ -281,13 +286,35 @@
             init() {
                 const params = new URLSearchParams(window.location.search);
                 const urlContext = params.get('context');
-                if (urlContext) {
+                
+                // AUTO-IMPORT LOGIC
+                const importKey = params.get('master-key');
+                const importBin = params.get('bin-id');
+
+                if (urlContext && importKey) {
+                    // Temporarily set context to access storage helper
+                    this.context = urlContext;
+                    
+                    // Save Keys
+                    localStorage.setItem(this.getStorageKey('api_key'), importKey);
+                    if (importBin) localStorage.setItem(this.getStorageKey('bin_id'), importBin);
+                    
+                    // Clean URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('master-key');
+                    newUrl.searchParams.delete('bin-id');
+                    window.history.replaceState({}, '', newUrl);
+                    
+                    // Proceed to load
+                    this.loadContext(urlContext);
+                } else if (urlContext) {
                     this.loadContext(urlContext);
                 } else {
                     this.showStartupScreen();
                 }
             }
 
+            // --- STARTUP & RECENT CONTEXTS ---
             showStartupScreen() {
                 const screen = document.getElementById('startup-screen');
                 const container = document.getElementById('app-container');
@@ -385,6 +412,9 @@
                     if (e.target.id === 'config-modal') document.getElementById('config-modal').classList.remove('show');
                 });
                 
+                // SHARE CONFIG BUTTON
+                document.getElementById('share-config-btn').addEventListener('click', () => this.shareConfig());
+
                 document.getElementById('schema-add-btn').addEventListener('click', () => this.addOrUpdateSchemaField());
                 document.getElementById('schema-cancel-edit-btn').addEventListener('click', () => this.resetSchemaForm());
                 
@@ -403,11 +433,8 @@
                 const iRaw = localStorage.getItem(this.getStorageKey('items'));
                 
                 this.db.schema = sRaw ? JSON.parse(sRaw) : [];
-                // FILTER ON LOAD: Clean any potential empty objects
                 let loadedItems = iRaw ? JSON.parse(iRaw) : [];
                 this.db.items = loadedItems.filter(i => i && i.id && i.name); 
-                
-                // Initial KPI update
                 this.updateKPIs(this.db.items);
             }
 
@@ -434,11 +461,9 @@
                     const record = data.record || {};
 
                     if (Array.isArray(record)) {
-                        // Legacy handling: filter old arrays too
                         this.db.items = record.filter(i => i && i.id && i.name);
                     } else {
                         this.db.schema = record.schema || [];
-                        // CRITICAL: Filter incoming cloud items too
                         const cloudItems = record.items || [];
                         this.db.items = cloudItems.filter(i => i && i.id && i.name);
                     }
@@ -527,6 +552,31 @@
                 } else {
                     this.fetchCloudData(); 
                 }
+            }
+
+            // --- SHARE CONFIG LOGIC ---
+            shareConfig() {
+                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const binId = localStorage.getItem(this.getStorageKey('bin_id'));
+
+                if (!apiKey) {
+                    this.showToast('Error: No API Key to share');
+                    return;
+                }
+
+                // Construct URL
+                const url = new URL(window.location.origin + window.location.pathname);
+                url.searchParams.set('context', this.context);
+                url.searchParams.set('master-key', apiKey);
+                if (binId) url.searchParams.set('bin-id', binId);
+
+                // Copy
+                navigator.clipboard.writeText(url.toString()).then(() => {
+                    this.showToast('Link copied to clipboard!');
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert('Could not copy link automatically.');
+                });
             }
 
             // --- SCHEMA UI & LOGIC ---
@@ -665,14 +715,12 @@
 
             // --- KPI ENGINE ---
             updateKPIs(dataSet) {
-                // Ensure no ghosts in calculation
                 const rawData = dataSet || this.db.items;
                 const data = rawData.filter(i => i && i.id && i.name);
 
                 const container = document.getElementById('kpi-container');
                 container.innerHTML = ''; 
 
-                // 1. Record Count
                 const countHtml = `
                     <div class="kpi-card">
                         <div class="kpi-label">Records</div>
@@ -680,7 +728,6 @@
                     </div>`;
                 container.insertAdjacentHTML('beforeend', countHtml);
 
-                // 2. Dynamic KPIs
                 const kpiFields = this.db.schema.filter(f => f.type === 'number' && f.kpiMode);
                 
                 kpiFields.forEach(field => {
@@ -721,7 +768,7 @@
                 csvRows.push(headers.map(h => `"${h}"`).join(';'));
 
                 this.db.items.forEach(item => {
-                    if (!item.id || !item.name) return; // Skip ghosts on export
+                    if (!item.id || !item.name) return; 
                     const row = headers.map(header => {
                         let val = item[header] || '';
                         val = String(val).replace(/"/g, '""'); 
@@ -787,7 +834,7 @@
                             importedCount++;
                         }
                         
-                        this.saveLocalData(); // Saves both schema and sanitized items
+                        this.saveLocalData(); 
                         this.renderTable(document.getElementById('search-input').value);
                         this.showToast(`Imported ${importedCount} records`);
                         setTimeout(() => this.syncToCloud(), 500);
@@ -830,7 +877,6 @@
                 const emptyState = document.getElementById('empty-state');
                 const tableContainer = document.querySelector('.table-container');
 
-                // Filter on valid items + search
                 let displayItems = this.db.items.filter(item => 
                     item && item.id && item.name &&
                     Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()))
@@ -862,7 +908,6 @@
                 }).join('');
             }
 
-            // ... (Editor, Save, Delete Logic - No changes needed as they use sanitized state) ...
             openEditor() {
                 this.currentItemId = null;
                 document.getElementById('form-title').textContent = 'New Record';

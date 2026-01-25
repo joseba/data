@@ -47,6 +47,21 @@
         .kpi-value { font-size: 24px; font-weight: 700; color: var(--text); text-align: center; }
         .kpi-value.highlight { color: var(--primary); }
 
+        /* FILTER SECTION */
+        .filter-section { margin-bottom: 20px; display: none; flex-direction: column; gap: 8px; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .filter-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-light); }
+        .filter-reset { font-size: 11px; color: var(--danger); cursor: pointer; text-decoration: underline; font-weight: 600; }
+        .filter-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .filter-group-label { font-size: 12px; font-weight: 600; color: var(--text); margin-right: 5px; min-width: 60px; }
+        .filter-chip { 
+            font-size: 11px; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border); 
+            background: #f8fafc; color: var(--text-light); cursor: pointer; transition: all 0.2s; user-select: none; 
+        }
+        .filter-chip:hover { background: #e2e8f0; color: var(--text); }
+        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .filter-chip.disabled { opacity: 0.4; cursor: not-allowed; background: #e2e8f0; color: #94a3b8; pointer-events: none; }
+
         /* Buttons */
         .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { background: #f1f5f9; }
@@ -60,7 +75,7 @@
         .btn-info:hover { background: #bae6fd; }
         .btn-sm { padding: 4px 8px; font-size: 11px; min-width: auto; }
         
-        /* SYNC BUTTON STATES - MODIFICADO */
+        /* SYNC BUTTON STATES */
         .btn-sync-success { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
         .btn-sync-off { background-color: var(--black) !important; color: white !important; border-color: var(--black) !important; }
         .btn-sync-error { background-color: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
@@ -178,6 +193,8 @@
             <input type="text" class="search-bar" id="search-input" placeholder="Search records...">
             
             <div class="kpi-container" id="kpi-container"></div>
+            
+            <div id="filter-container" class="filter-section"></div>
 
             <div class="table-container">
                 <table id="data-table">
@@ -292,11 +309,12 @@
             constructor() {
                 this.context = null;
                 this.db = { schema: [], items: [] };
+                this.activeFilters = {}; 
                 this.currentItemId = null;
                 this.editingFieldKey = null;
                 this.isProcessing = false;
                 this.eventsBound = false;
-                this.autoSyncEnabled = true; // DEFAULT ON
+                this.autoSyncEnabled = true;
                 this.RECENT_KEY = 'global_recent_contexts'; 
                 this.GLOBAL_API_KEY = 'global_jsonbin_api_key'; 
                 this.init();
@@ -305,8 +323,6 @@
             init() {
                 const params = new URLSearchParams(window.location.search);
                 const urlContext = params.get('context');
-                
-                // AUTO-IMPORT LOGIC
                 const importBin = params.get('bin-id');
 
                 if (urlContext) {
@@ -323,7 +339,6 @@
                 }
             }
 
-            // --- STARTUP & RECENT CONTEXTS ---
             showStartupScreen() {
                 const screen = document.getElementById('startup-screen');
                 const container = document.getElementById('app-container');
@@ -335,7 +350,6 @@
                 screen.style.display = 'flex';
                 input.value = ''; 
                 input.focus();
-
                 this.renderRecents(); 
 
                 const handleStart = () => {
@@ -356,7 +370,6 @@
                     return;
                 }
                 recentArea.style.display = 'block';
-                
                 const htmlButtons = recents.map(ctx => 
                     `<button class="btn recent-btn" onclick="app.switchUrlAndLoad('${ctx}')">${ctx}</button>`
                 ).join('');
@@ -366,7 +379,6 @@
                         CLEAR HISTORY
                     </button>
                 `;
-
                 recentList.innerHTML = htmlButtons + clearHtml;
             }
 
@@ -395,21 +407,19 @@
             loadContext(contextName) {
                 this.context = contextName;
                 this.addToRecents(this.context); 
+                this.activeFilters = {}; 
 
                 document.title = `DATA ${this.context}`;
                 document.getElementById('app-title').textContent = `${this.context} DATA`;
                 document.getElementById('app-container').style.display = 'block';
 
                 this.db = { schema: [], items: [] };
-                
-                // Set default sync state UI to idle (Green/Active)
                 this.updateSyncButton('idle');
-                
                 this.bindEvents();
                 this.loadLocalData(); 
+                this.renderFilters(); 
                 this.renderTable();
                 
-                // CHECK GLOBAL KEY EXISTENCE
                 const globalKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 if (!globalKey) {
                     this.openConfig();
@@ -428,28 +438,20 @@
                 document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
                 document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
                 document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
-                
-                // MODIFIED SYNC BTN LISTENER
                 document.getElementById('refresh-btn').addEventListener('click', () => this.toggleAutoSync()); 
-                
                 document.getElementById('back-btn').addEventListener('click', () => this.showView('list'));
-                
                 document.getElementById('item-form').addEventListener('submit', (e) => this.saveItem(e));
                 document.getElementById('delete-btn').addEventListener('click', () => this.deleteItem());
-                
                 document.getElementById('delete-all-btn').addEventListener('click', () => this.deleteAllItems());
                 document.getElementById('export-btn').addEventListener('click', () => this.exportCSV());
                 document.getElementById('import-btn').addEventListener('click', () => document.getElementById('file-import-input').click());
                 document.getElementById('file-import-input').addEventListener('change', (e) => this.importCSV(e));
-
                 document.getElementById('save-config').addEventListener('click', () => this.saveConfiguration());
                 document.getElementById('cancel-config').addEventListener('click', () => document.getElementById('config-modal').classList.remove('show'));
                 document.getElementById('config-modal').addEventListener('click', (e) => {
                     if (e.target.id === 'config-modal') document.getElementById('config-modal').classList.remove('show');
                 });
-                
                 document.getElementById('share-config-btn').addEventListener('click', () => this.shareConfig());
-
                 document.getElementById('schema-add-btn').addEventListener('click', () => this.addOrUpdateSchemaField());
                 document.getElementById('schema-cancel-edit-btn').addEventListener('click', () => this.resetSchemaForm());
                 
@@ -459,48 +461,39 @@
                     document.getElementById('schema-kpi-row').classList.toggle('show', type === 'number');
                 });
 
-                document.getElementById('search-input').addEventListener('input', (e) => this.renderTable(e.target.value));
+                document.getElementById('search-input').addEventListener('input', (e) => {
+                    this.renderTable(e.target.value);
+                    this.renderFilters(); // Re-calc valid options on search
+                });
             }
 
-            // --- SYNC TOGGLE LOGIC (NEW) ---
             toggleAutoSync() {
                 this.autoSyncEnabled = !this.autoSyncEnabled;
                 if (this.autoSyncEnabled) {
-                    // Si se activa, lanza sincronización inmediata
                     this.syncToCloud(); 
                 } else {
-                    // Si se desactiva, actualiza el botón a estado OFF
                     this.updateSyncButton('idle');
                 }
             }
 
             updateSyncButton(state) {
                 const btn = document.getElementById('refresh-btn');
-                btn.className = 'btn'; // Reset classes
+                btn.className = 'btn'; 
                 btn.textContent = 'SYNC';
 
                 if (state === 'loading') {
                     btn.textContent = '...';
-                    // Mantener el color del estado anterior o neutro, aquí dejamos neutro por defecto
-                } 
-                
-                // Si está desactivado, siempre es negro (OFF)
-                else if (!this.autoSyncEnabled) {
+                } else if (!this.autoSyncEnabled) {
                     btn.classList.add('btn-sync-off'); 
-                } 
-                
-                // Si está activado
-                else {
+                } else {
                     if (state === 'error') {
-                        btn.classList.add('btn-sync-error'); // Rojo
+                        btn.classList.add('btn-sync-error'); 
                     } else {
-                        // Success o Idle -> Verde
                         btn.classList.add('btn-sync-success'); 
                     }
                 }
             }
 
-            // --- DATA CORE ---
             loadLocalData() {
                 const sRaw = localStorage.getItem(this.getStorageKey('schema'));
                 const iRaw = localStorage.getItem(this.getStorageKey('items'));
@@ -546,6 +539,7 @@
                     this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
 
                     this.saveLocalData();
+                    this.renderFilters(); 
                     this.renderTable(document.getElementById('search-input').value);
                     this.updateSyncButton('success');
 
@@ -556,7 +550,6 @@
             }
 
             async syncToCloud() {
-                // Solo ejecutar si hay API keys
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
@@ -599,16 +592,12 @@
                     });
 
                     if (!res.ok) throw new Error('Create Failed');
-                    
                     const data = await res.json();
                     const newId = data.metadata.id;
-                    
                     localStorage.setItem(this.getStorageKey('bin_id'), newId);
                     this.showToast('New Database Created!');
-                    
                     this.isProcessing = false;
                     this.fetchCloudData();
-
                 } catch (e) {
                     this.isProcessing = false;
                     this.updateSyncButton('error');
@@ -627,15 +616,12 @@
                 }
             }
 
-            // --- SHARE CONFIG LOGIC ---
             shareConfig() {
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
-
                 if (!binId) {
                     this.showToast('No Cloud Bin to share yet');
                     return;
                 }
-
                 const url = new URL(window.location.origin + window.location.pathname);
                 url.searchParams.set('context', this.context);
                 url.searchParams.set('bin-id', binId);
@@ -648,7 +634,121 @@
                 });
             }
 
-            // --- SCHEMA UI & LOGIC ---
+            // --- FILTER LOGIC (UPDATED: DEPENDENT FILTERS) ---
+            renderFilters() {
+                const container = document.getElementById('filter-container');
+                const selectors = this.db.schema.filter(f => f.type === 'select' && f.options && f.options.length > 0);
+                
+                if (selectors.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'flex';
+                container.innerHTML = '';
+                
+                // --- 1. Calcular Datos Válidos Actuales ---
+                // Para hacer filtros dependientes, necesitamos saber qué items "sobreviven"
+                // a los filtros *actualmente activos* (exceptuando el filtro del grupo que estamos pintando)
+                
+                const currentSearchText = document.getElementById('search-input').value.toLowerCase();
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'filter-header';
+                const title = document.createElement('span');
+                title.className = 'filter-title';
+                title.textContent = 'Smart Filters';
+                header.appendChild(title);
+                
+                if (Object.keys(this.activeFilters).length > 0) {
+                    const clearBtn = document.createElement('span');
+                    clearBtn.className = 'filter-reset';
+                    clearBtn.textContent = 'Clear All';
+                    clearBtn.onclick = () => {
+                        this.activeFilters = {};
+                        this.renderFilters();
+                        this.renderTable(document.getElementById('search-input').value);
+                    };
+                    header.appendChild(clearBtn);
+                }
+                container.appendChild(header);
+
+                // Render groups
+                selectors.forEach(field => {
+                    // Calculamos qué opciones son válidas para ESTE campo,
+                    // basándonos en los filtros aplicados en LOS OTROS campos.
+                    const validOptionsForThisField = new Set();
+                    
+                    this.db.items.forEach(item => {
+                        // 1. ¿Cumple la búsqueda de texto?
+                        const matchesSearch = !currentSearchText || Object.values(item).some(val => String(val).toLowerCase().includes(currentSearchText));
+                        
+                        // 2. ¿Cumple los OTROS filtros activos? (Ignoramos el filtro de este mismo campo para no ocultar la opción seleccionada)
+                        const matchesOtherFilters = Object.entries(this.activeFilters).every(([k, v]) => {
+                            if (k === field.key) return true; // Ignorar self
+                            return item[k] === v;
+                        });
+
+                        if (matchesSearch && matchesOtherFilters) {
+                            if (item[field.key]) validOptionsForThisField.add(item[field.key]);
+                        }
+                    });
+
+                    // Si NO hay filtros activos en absoluto, mostramos todas las opciones del esquema
+                    // para evitar que el filtro desaparezca si no hay datos aún.
+                    // Pero si hay datos, preferimos mostrar solo lo existente.
+                    const showAllBecauseNoData = this.db.items.length === 0;
+
+                    const row = document.createElement('div');
+                    row.className = 'filter-row';
+                    
+                    const label = document.createElement('span');
+                    label.className = 'filter-group-label';
+                    label.textContent = field.key;
+                    row.appendChild(label);
+
+                    field.options.forEach(opt => {
+                        // Decidir si mostrar el chip
+                        // Se muestra si:
+                        // A) Es la opción actualmente seleccionada (active)
+                        // B) O si existe en el set de opciones válidas (validOptionsForThisField)
+                        // C) O si no hay datos en absoluto (estado inicial vacío)
+                        const isActive = this.activeFilters[field.key] === opt;
+                        const isValid = validOptionsForThisField.has(opt);
+
+                        // Si quieres Ocultar los inválidos:
+                        if (!isActive && !isValid && !showAllBecauseNoData) return;
+
+                        // (Opcional) Si prefieres mostrarlos deshabilitados en vez de ocultos, usa esto:
+                        // const isDisabled = !isActive && !isValid && !showAllBecauseNoData;
+                        
+                        const chip = document.createElement('span');
+                        chip.className = `filter-chip ${isActive ? 'active' : ''}`;
+                        chip.textContent = opt;
+                        
+                        // Si usas modo disabled visual:
+                        // if(isDisabled) chip.classList.add('disabled');
+
+                        chip.onclick = () => {
+                            if (isActive) {
+                                delete this.activeFilters[field.key];
+                            } else {
+                                this.activeFilters[field.key] = opt;
+                            }
+                            this.renderFilters(); // Re-render filter states
+                            this.renderTable(document.getElementById('search-input').value);
+                        };
+                        row.appendChild(chip);
+                    });
+                    
+                    // Solo añadir la fila si tiene al menos un chip visible
+                    if (row.children.length > 1) { 
+                        container.appendChild(row);
+                    }
+                });
+            }
+
             renderSchemaList() {
                 const list = document.getElementById('schema-list');
                 if (this.db.schema.length === 0) {
@@ -668,27 +768,21 @@
                         e.dataTransfer.setData('text/plain', index);
                         div.classList.add('dragging');
                     });
-                    
                     div.addEventListener('dragend', () => div.classList.remove('dragging'));
-                    
                     div.addEventListener('dragover', (e) => {
                         e.preventDefault();
                         e.dataTransfer.dropEffect = 'move';
                     });
-
                     div.addEventListener('drop', (e) => {
                         e.preventDefault();
                         const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
                         const toIndex = index;
-                        
                         if (fromIndex !== toIndex) {
                             const item = this.db.schema.splice(fromIndex, 1)[0];
                             this.db.schema.splice(toIndex, 0, item);
                             this.saveSchema();
                             this.renderSchemaList();
                             this.renderTable(document.getElementById('search-input').value);
-                            
-                            // Check AutoSync on Drop
                             if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 500); 
                         }
                     });
@@ -717,19 +811,15 @@
             editSchemaField(key) {
                 const field = this.db.schema.find(f => f.key === key);
                 if(!field) return;
-
                 this.editingFieldKey = key;
-                
                 document.getElementById('schema-new-name').value = field.key;
                 document.getElementById('schema-new-type').value = field.type;
                 document.getElementById('schema-new-show').checked = field.showInList;
                 document.getElementById('schema-new-options').value = field.options ? field.options.join(', ') : '';
                 document.getElementById('schema-new-iskpi').checked = !!field.kpiMode;
                 document.getElementById('schema-new-kpiop').value = (field.kpiMode === 'avg' ? 'avg' : 'sum');
-                
                 document.getElementById('schema-options-row').classList.toggle('show', field.type === 'select');
                 document.getElementById('schema-kpi-row').classList.toggle('show', field.type === 'number');
-
                 document.getElementById('schema-box-title').textContent = 'Edit Field';
                 document.getElementById('schema-add-btn').textContent = 'Update Field';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'inline-block';
@@ -744,10 +834,8 @@
                 document.getElementById('schema-new-options').value = '';
                 document.getElementById('schema-new-iskpi').checked = false;
                 document.getElementById('schema-new-kpiop').value = 'sum';
-                
                 document.getElementById('schema-options-row').classList.remove('show');
                 document.getElementById('schema-kpi-row').classList.remove('show');
-
                 document.getElementById('schema-box-title').textContent = 'Add New Field';
                 document.getElementById('schema-add-btn').textContent = 'Add Field';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'none';
@@ -812,6 +900,7 @@
                 this.saveSchema();
                 this.renderSchemaList();
                 this.resetSchemaForm();
+                this.renderFilters(); 
                 this.renderTable(document.getElementById('search-input').value);
                 
                 if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
@@ -822,6 +911,7 @@
                     this.db.schema = this.db.schema.filter(f => f.key !== key);
                     this.saveSchema();
                     this.renderSchemaList();
+                    this.renderFilters();
                     this.renderTable(document.getElementById('search-input').value);
                     if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
                 }
@@ -832,7 +922,6 @@
                 this.renderTable(document.getElementById('search-input').value);
             }
 
-            // --- KPI ENGINE ---
             updateKPIs(dataSet) {
                 const rawData = dataSet || this.db.items;
                 const data = rawData.filter(i => i && i.id && i.name);
@@ -874,7 +963,6 @@
                 });
             }
 
-            // --- CSV ---
             exportCSV() {
                 if (this.db.items.length === 0) {
                     this.showToast('No data to export');
@@ -962,6 +1050,7 @@
                         if(newFieldsDetected) this.saveSchema();
                         
                         this.saveLocalData();
+                        this.renderFilters(); 
                         this.renderTable(document.getElementById('search-input').value);
                         this.showToast(`Imported ${importedCount} records`);
                         
@@ -1005,10 +1094,16 @@
                 const emptyState = document.getElementById('empty-state');
                 const tableContainer = document.querySelector('.table-container');
 
-                let displayItems = this.db.items.filter(item => 
-                    item && item.id && item.name &&
-                    Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()))
-                );
+                let displayItems = this.db.items.filter(item => {
+                    const matchesSearch = !item || !item.name ? false : 
+                        Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()));
+                    
+                    const matchesFilters = Object.entries(this.activeFilters).every(([key, val]) => {
+                        return item[key] === val;
+                    });
+
+                    return item && item.id && item.name && matchesSearch && matchesFilters;
+                });
 
                 this.updateKPIs(displayItems);
 
@@ -1125,6 +1220,9 @@
                 this.showToast('Saved locally');
                 this.showView('list');
                 
+                // Actualizar filtros por si el nuevo item habilita nuevas opciones
+                this.renderFilters(); 
+
                 if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
             }
 
@@ -1134,6 +1232,7 @@
                 this.saveLocalData();
                 this.showToast('Record deleted');
                 this.showView('list');
+                this.renderFilters(); 
                 
                 if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
             }

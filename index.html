@@ -12,6 +12,7 @@
             --danger-hover: #b91c1c;
             --success: #10b981;
             --warning: #f59e0b;
+            --black: #0f172a;
             --bg: #f8fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
@@ -35,7 +36,7 @@
         .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .header-actions .btn { min-width: 90px; }
 
-        /* KPI Section (Dynamic Layout) */
+        /* KPI Section */
         .kpi-container { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .kpi-card { 
             background: var(--surface); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
@@ -59,10 +60,27 @@
         .btn-info:hover { background: #bae6fd; }
         .btn-sm { padding: 4px 8px; font-size: 11px; min-width: auto; }
         
+        /* SYNC BUTTON STATES - MODIFICADO */
+        .btn-sync-success { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .btn-sync-off { background-color: var(--black) !important; color: white !important; border-color: var(--black) !important; }
+        .btn-sync-error { background-color: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
+
         /* Schema Manager Styles */
         .schema-section { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); }
-        .schema-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; }
-        .schema-item { background: #f8fafc; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .schema-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 300px; overflow-y: auto; }
+        
+        .schema-item { 
+            background: #f8fafc; border: 1px solid var(--border); padding: 8px 12px; 
+            border-radius: 6px; display: flex; justify-content: space-between; align-items: center; 
+            cursor: grab; transition: background 0.2s, border-color 0.2s;
+        }
+        .schema-item:active { cursor: grabbing; }
+        .schema-item.dragging { opacity: 0.5; background: #e2e8f0; border-style: dashed; }
+        .schema-item.drag-over { border-top: 2px solid var(--primary); }
+
+        .schema-content-wrapper { display: flex; align-items: center; gap: 10px; }
+        .schema-drag-handle { color: #cbd5e1; font-size: 16px; cursor: grab; }
+        
         .schema-info { display: flex; flex-direction: column; }
         .schema-name { font-weight: 600; font-size: 13px; }
         .schema-meta { font-size: 11px; color: var(--text-light); }
@@ -78,10 +96,6 @@
         .add-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .add-options, .add-kpi-options { display: none; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 4px; border: 1px solid var(--border); }
         .add-options.show, .add-kpi-options.show { display: block; }
-
-        /* Sync Button States */
-        .btn-sync-success { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
-        .btn-sync-error { background-color: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
 
         /* Views */
         .view-section { display: none; }
@@ -120,6 +134,8 @@
         .recent-list { display: flex; flex-direction: column; gap: 8px; }
         .recent-btn { width: 100%; text-align: center; justify-content: center; padding: 12px 15px; font-size: 14px; background: #fff; text-transform: uppercase; font-weight: 600; color: var(--text-light); }
         .recent-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .recent-btn-clear { color: var(--danger); margin-top: 10px; font-weight: 700; }
+        .recent-btn-clear:hover { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
 
         /* Toast */
         .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 6px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 3000; }
@@ -151,7 +167,7 @@
                 <button class="btn btn-danger-solid" id="delete-all-btn" title="Delete All Records">DESTROY</button>
                 <button class="btn" id="export-btn" title="Download CSV">EXPORT</button>
                 <button class="btn" id="import-btn" title="Upload CSV">IMPORT</button>
-                <button class="btn" id="refresh-btn" title="Sync Status">↻ SYNC</button>
+                <button class="btn" id="refresh-btn" title="Toggle Auto-Sync">SYNC</button>
                 <button class="btn" id="config-btn">CONFIG</button>
                 <button class="btn btn-primary" id="add-btn">NEW</button>
             </div>
@@ -186,7 +202,6 @@
                         <input type="text" class="form-input" id="field-name" required>
                     </div>
                     <div id="dynamic-fields-container"></div>
-                    
                     <div style="margin-top: 30px; display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary" style="flex: 1;">Save Record</button>
                         <button type="button" class="btn btn-danger" id="delete-btn" style="display: none;">Delete</button>
@@ -209,16 +224,18 @@
             </p>
             
             <div class="form-group">
-                <label class="form-label">JSONBin API Key</label>
+                <label class="form-label">Global JSONBin API Key (Saved in Browser)</label>
                 <input type="password" class="form-input" id="conf-api-key" placeholder="$2a$10...">
+                <small style="color: var(--text-light); font-size: 11px;">This key is shared across all contexts on this device.</small>
             </div>
             <div class="form-group">
-                <label class="form-label">Bin ID (Optional)</label>
+                <label class="form-label">Bin ID (Specific for this Context)</label>
                 <input type="text" class="form-input" id="conf-bin-id" placeholder="65a...">
             </div>
 
             <div class="schema-section">
                 <h4 style="margin-bottom: 10px; font-size: 13px; text-transform: uppercase;">Database Schema</h4>
+                <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Drag ☰ to reorder fields.</p>
                 <div id="schema-list" class="schema-list"></div>
 
                 <div class="add-field-box" id="schema-editor-box">
@@ -279,7 +296,9 @@
                 this.editingFieldKey = null;
                 this.isProcessing = false;
                 this.eventsBound = false;
+                this.autoSyncEnabled = true; // DEFAULT ON
                 this.RECENT_KEY = 'global_recent_contexts'; 
+                this.GLOBAL_API_KEY = 'global_jsonbin_api_key'; 
                 this.init();
             }
 
@@ -288,26 +307,16 @@
                 const urlContext = params.get('context');
                 
                 // AUTO-IMPORT LOGIC
-                const importKey = params.get('master-key');
                 const importBin = params.get('bin-id');
 
-                if (urlContext && importKey) {
-                    // Temporarily set context to access storage helper
-                    this.context = urlContext;
-                    
-                    // Save Keys
-                    localStorage.setItem(this.getStorageKey('api_key'), importKey);
-                    if (importBin) localStorage.setItem(this.getStorageKey('bin_id'), importBin);
-                    
-                    // Clean URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('master-key');
-                    newUrl.searchParams.delete('bin-id');
-                    window.history.replaceState({}, '', newUrl);
-                    
-                    // Proceed to load
-                    this.loadContext(urlContext);
-                } else if (urlContext) {
+                if (urlContext) {
+                    if (importBin) {
+                        this.context = urlContext; 
+                        localStorage.setItem(this.getStorageKey('bin_id'), importBin);
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.delete('bin-id');
+                        window.history.replaceState({}, '', newUrl);
+                    }
                     this.loadContext(urlContext);
                 } else {
                     this.showStartupScreen();
@@ -347,9 +356,23 @@
                     return;
                 }
                 recentArea.style.display = 'block';
-                recentList.innerHTML = recents.map(ctx => 
+                
+                const htmlButtons = recents.map(ctx => 
                     `<button class="btn recent-btn" onclick="app.switchUrlAndLoad('${ctx}')">${ctx}</button>`
                 ).join('');
+
+                const clearHtml = `
+                    <button class="btn recent-btn recent-btn-clear" onclick="app.clearRecents()">
+                        CLEAR HISTORY
+                    </button>
+                `;
+
+                recentList.innerHTML = htmlButtons + clearHtml;
+            }
+
+            clearRecents() {
+                localStorage.removeItem(this.RECENT_KEY);
+                this.renderRecents();
             }
 
             addToRecents(context) {
@@ -378,12 +401,22 @@
                 document.getElementById('app-container').style.display = 'block';
 
                 this.db = { schema: [], items: [] };
-                this.updateSyncButton('reset');
+                
+                // Set default sync state UI to idle (Green/Active)
+                this.updateSyncButton('idle');
                 
                 this.bindEvents();
                 this.loadLocalData(); 
                 this.renderTable();
-                this.checkSyncReady(); 
+                
+                // CHECK GLOBAL KEY EXISTENCE
+                const globalKey = localStorage.getItem(this.GLOBAL_API_KEY);
+                if (!globalKey) {
+                    this.openConfig();
+                    this.showToast('Please configure your Global API Key');
+                } else {
+                    this.checkSyncReady(); 
+                }
             }
 
             getStorageKey(key) { return `ctx_${this.context}_${key}`; }
@@ -395,7 +428,10 @@
                 document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
                 document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
                 document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
-                document.getElementById('refresh-btn').addEventListener('click', () => this.manualSync()); 
+                
+                // MODIFIED SYNC BTN LISTENER
+                document.getElementById('refresh-btn').addEventListener('click', () => this.toggleAutoSync()); 
+                
                 document.getElementById('back-btn').addEventListener('click', () => this.showView('list'));
                 
                 document.getElementById('item-form').addEventListener('submit', (e) => this.saveItem(e));
@@ -412,7 +448,6 @@
                     if (e.target.id === 'config-modal') document.getElementById('config-modal').classList.remove('show');
                 });
                 
-                // SHARE CONFIG BUTTON
                 document.getElementById('share-config-btn').addEventListener('click', () => this.shareConfig());
 
                 document.getElementById('schema-add-btn').addEventListener('click', () => this.addOrUpdateSchemaField());
@@ -427,12 +462,52 @@
                 document.getElementById('search-input').addEventListener('input', (e) => this.renderTable(e.target.value));
             }
 
+            // --- SYNC TOGGLE LOGIC (NEW) ---
+            toggleAutoSync() {
+                this.autoSyncEnabled = !this.autoSyncEnabled;
+                if (this.autoSyncEnabled) {
+                    // Si se activa, lanza sincronización inmediata
+                    this.syncToCloud(); 
+                } else {
+                    // Si se desactiva, actualiza el botón a estado OFF
+                    this.updateSyncButton('idle');
+                }
+            }
+
+            updateSyncButton(state) {
+                const btn = document.getElementById('refresh-btn');
+                btn.className = 'btn'; // Reset classes
+                btn.textContent = 'SYNC';
+
+                if (state === 'loading') {
+                    btn.textContent = '...';
+                    // Mantener el color del estado anterior o neutro, aquí dejamos neutro por defecto
+                } 
+                
+                // Si está desactivado, siempre es negro (OFF)
+                else if (!this.autoSyncEnabled) {
+                    btn.classList.add('btn-sync-off'); 
+                } 
+                
+                // Si está activado
+                else {
+                    if (state === 'error') {
+                        btn.classList.add('btn-sync-error'); // Rojo
+                    } else {
+                        // Success o Idle -> Verde
+                        btn.classList.add('btn-sync-success'); 
+                    }
+                }
+            }
+
             // --- DATA CORE ---
             loadLocalData() {
                 const sRaw = localStorage.getItem(this.getStorageKey('schema'));
                 const iRaw = localStorage.getItem(this.getStorageKey('items'));
                 
                 this.db.schema = sRaw ? JSON.parse(sRaw) : [];
+                this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
+
                 let loadedItems = iRaw ? JSON.parse(iRaw) : [];
                 this.db.items = loadedItems.filter(i => i && i.id && i.name); 
                 this.updateKPIs(this.db.items);
@@ -444,7 +519,7 @@
             }
 
             async fetchCloudData() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const apiKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
 
@@ -467,6 +542,8 @@
                         const cloudItems = record.items || [];
                         this.db.items = cloudItems.filter(i => i && i.id && i.name);
                     }
+                    
+                    this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
 
                     this.saveLocalData();
                     this.renderTable(document.getElementById('search-input').value);
@@ -479,7 +556,8 @@
             }
 
             async syncToCloud() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                // Solo ejecutar si hay API keys
+                const apiKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
 
@@ -538,13 +616,8 @@
                 }
             }
 
-            manualSync() {
-                this.fetchCloudData();
-                this.showToast('Checking cloud...');
-            }
-
             checkSyncReady() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
+                const apiKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey) return;
                 if (!binId) {
@@ -556,25 +629,21 @@
 
             // --- SHARE CONFIG LOGIC ---
             shareConfig() {
-                const apiKey = localStorage.getItem(this.getStorageKey('api_key'));
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
 
-                if (!apiKey) {
-                    this.showToast('Error: No API Key to share');
+                if (!binId) {
+                    this.showToast('No Cloud Bin to share yet');
                     return;
                 }
 
-                // Construct URL
                 const url = new URL(window.location.origin + window.location.pathname);
                 url.searchParams.set('context', this.context);
-                url.searchParams.set('master-key', apiKey);
-                if (binId) url.searchParams.set('bin-id', binId);
+                url.searchParams.set('bin-id', binId);
 
-                // Copy
                 navigator.clipboard.writeText(url.toString()).then(() => {
-                    this.showToast('Link copied to clipboard!');
+                    this.showToast('Secure link copied! (Requires API Key)');
                 }).catch(err => {
-                    console.error('Could not copy text: ', err);
+                    console.error(err);
                     alert('Could not copy link automatically.');
                 });
             }
@@ -586,23 +655,63 @@
                     list.innerHTML = '<span style="font-size:11px; color:#94a3b8; font-style:italic; text-align:center;">No schema defined. Add fields below.</span>';
                     return;
                 }
-                list.innerHTML = this.db.schema.map(field => {
+                list.innerHTML = '';
+                
+                this.db.schema.forEach((field, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'schema-item';
+                    div.draggable = true;
+                    div.dataset.index = index;
+
+                    div.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', index);
+                        div.classList.add('dragging');
+                    });
+                    
+                    div.addEventListener('dragend', () => div.classList.remove('dragging'));
+                    
+                    div.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    });
+
+                    div.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                        const toIndex = index;
+                        
+                        if (fromIndex !== toIndex) {
+                            const item = this.db.schema.splice(fromIndex, 1)[0];
+                            this.db.schema.splice(toIndex, 0, item);
+                            this.saveSchema();
+                            this.renderSchemaList();
+                            this.renderTable(document.getElementById('search-input').value);
+                            
+                            // Check AutoSync on Drop
+                            if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 500); 
+                        }
+                    });
+
                     let meta = field.type.toUpperCase();
                     if(field.type === 'number' && field.kpiMode) meta += ` (${field.kpiMode.toUpperCase()})`;
                     meta += ` | ${field.showInList ? 'VISIBLE' : 'HIDDEN'}`;
-                    
-                    return `
-                    <div class="schema-item">
-                        <div class="schema-info">
-                            <span class="schema-name">${field.key}</span>
-                            <span class="schema-meta">${meta}</span>
+
+                    div.innerHTML = `
+                        <div class="schema-content-wrapper">
+                            <span class="schema-drag-handle">☰</span>
+                            <div class="schema-info">
+                                <span class="schema-name">${field.key}</span>
+                                <span class="schema-meta">${meta}</span>
+                            </div>
                         </div>
                         <div class="schema-actions">
                             <span class="schema-icon edit" onclick="app.editSchemaField('${field.key}')">✎</span>
                             <span class="schema-icon delete" onclick="app.removeSchemaField('${field.key}')">✕</span>
                         </div>
-                    </div>`;
-                }).join('');
+                    `;
+                    list.appendChild(div);
+                });
             }
 
             editSchemaField(key) {
@@ -665,6 +774,11 @@
                     return;
                 }
                 
+                if (key.toLowerCase() === 'name') {
+                    alert('"Name" is a reserved field.');
+                    return;
+                }
+                
                 const fieldDef = { key, type, showInList };
                 
                 if (type === 'select') {
@@ -695,22 +809,27 @@
                     this.db.schema.push(fieldDef);
                 }
                 
-                this.saveLocalData();
+                this.saveSchema();
                 this.renderSchemaList();
                 this.resetSchemaForm();
                 this.renderTable(document.getElementById('search-input').value);
                 
-                setTimeout(() => this.syncToCloud(), 100);
+                if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
             }
 
             removeSchemaField(key) {
                 if (confirm(`Delete field "${key}"?`)) {
                     this.db.schema = this.db.schema.filter(f => f.key !== key);
-                    this.saveLocalData();
+                    this.saveSchema();
                     this.renderSchemaList();
                     this.renderTable(document.getElementById('search-input').value);
-                    setTimeout(() => this.syncToCloud(), 100);
+                    if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
                 }
+            }
+
+            saveSchema() {
+                localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
+                this.renderTable(document.getElementById('search-input').value);
             }
 
             // --- KPI ENGINE ---
@@ -742,8 +861,7 @@
                             val = sum;
                             if (val % 1 !== 0) val = val.toFixed(2);
                         } else if (field.kpiMode === 'avg') {
-                            val = (sum / values.length).toFixed(2);
-                            if (val.endsWith('.00')) val = parseInt(val);
+                            val = Math.round(sum / values.length);
                         }
                     }
 
@@ -816,15 +934,21 @@
 
                             const newItem = {};
                             headers.forEach((h, index) => {
-                                if (h === 'id' || h === 'lastModified') return;
-                                if (h !== 'name' && !this.db.schema.some(f => f.key === h)) {
-                                    this.db.schema.push({ key: h, type: 'text', showInList: true });
+                                const cleanHeader = h.replace(/^\uFEFF/, '').trim();
+                                const lowerHeader = cleanHeader.toLowerCase();
+                                if (lowerHeader === 'id' || lowerHeader === 'lastmodified') return;
+                                let targetKey = cleanHeader;
+                                if (lowerHeader === 'name') targetKey = 'name';
+
+                                if (targetKey !== 'name' && !this.db.schema.some(f => f.key === targetKey)) {
+                                    this.db.schema.push({ key: targetKey, type: 'text', showInList: true });
                                     newFieldsDetected = true;
                                 }
+
                                 let cleanVal = values[index] ? values[index].trim() : '';
                                 if(cleanVal.startsWith('"') && cleanVal.endsWith('"')) cleanVal = cleanVal.substring(1, cleanVal.length-1);
                                 cleanVal = cleanVal.replace(/""/g, '"');
-                                newItem[h] = cleanVal;
+                                newItem[targetKey] = cleanVal;
                             });
 
                             newItem.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
@@ -834,12 +958,16 @@
                             importedCount++;
                         }
                         
-                        this.saveLocalData(); 
+                        this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
+                        if(newFieldsDetected) this.saveSchema();
+                        
+                        this.saveLocalData();
                         this.renderTable(document.getElementById('search-input').value);
                         this.showToast(`Imported ${importedCount} records`);
-                        setTimeout(() => this.syncToCloud(), 500);
+                        
+                        if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 500);
                     } catch (err) {
-                        alert('Error importing CSV.');
+                        alert('Error importing CSV: ' + err.message);
                     }
                     event.target.value = '';
                 };
@@ -853,7 +981,7 @@
                         this.saveLocalData();
                         this.renderTable();
                         this.showToast('All records destroyed');
-                        this.syncToCloud();
+                        if(this.autoSyncEnabled) this.syncToCloud();
                     }
                 }
             }
@@ -893,7 +1021,7 @@
                 tableContainer.style.display = 'block';
                 emptyState.style.display = 'none';
 
-                const visibleFields = this.db.schema.filter(f => f.showInList);
+                const visibleFields = this.db.schema.filter(f => f.showInList && f.key.toLowerCase() !== 'name');
                 let headerHTML = '<tr><th>Name</th>'; 
                 visibleFields.forEach(f => headerHTML += `<th>${f.key}</th>`);
                 headerHTML += '</tr>';
@@ -973,28 +1101,31 @@
                 e.preventDefault();
                 const name = document.getElementById('field-name').value;
                 const dynamicInputs = document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select');
-                const newItem = {
+                
+                let finalItem = {
                     id: this.currentItemId || Date.now().toString(),
                     name: name,
                     lastModified: new Date().toISOString()
                 };
+
+                dynamicInputs.forEach(input => {
+                    finalItem[input.dataset.key] = input.value;
+                });
+
                 if (this.currentItemId) {
                     const existing = this.db.items.find(i => i.id === this.currentItemId);
-                    Object.assign(newItem, existing, newItem); 
-                }
-                dynamicInputs.forEach(input => {
-                    newItem[input.dataset.key] = input.value;
-                });
-                if (this.currentItemId) {
+                    finalItem = { ...existing, ...finalItem };
                     const index = this.db.items.findIndex(i => i.id === this.currentItemId);
-                    this.db.items[index] = newItem;
+                    this.db.items[index] = finalItem;
                 } else {
-                    this.db.items.push(newItem);
+                    this.db.items.push(finalItem);
                 }
+
                 this.saveLocalData();
                 this.showToast('Saved locally');
                 this.showView('list');
-                setTimeout(() => this.syncToCloud(), 100);
+                
+                if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
             }
 
             deleteItem() {
@@ -1003,13 +1134,14 @@
                 this.saveLocalData();
                 this.showToast('Record deleted');
                 this.showView('list');
-                setTimeout(() => this.syncToCloud(), 100);
+                
+                if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
             }
 
             openConfig() {
                 const modal = document.getElementById('config-modal');
                 document.getElementById('modal-context').textContent = this.context;
-                document.getElementById('conf-api-key').value = localStorage.getItem(this.getStorageKey('api_key')) || '';
+                document.getElementById('conf-api-key').value = localStorage.getItem(this.GLOBAL_API_KEY) || '';
                 document.getElementById('conf-bin-id').value = localStorage.getItem(this.getStorageKey('bin_id')) || '';
                 this.renderSchemaList(); 
                 modal.classList.add('show');
@@ -1018,7 +1150,7 @@
             saveConfiguration() {
                 const apiKey = document.getElementById('conf-api-key').value.trim();
                 const binId = document.getElementById('conf-bin-id').value.trim();
-                if (apiKey) localStorage.setItem(this.getStorageKey('api_key'), apiKey);
+                if (apiKey) localStorage.setItem(this.GLOBAL_API_KEY, apiKey);
                 if (binId) localStorage.setItem(this.getStorageKey('bin_id'), binId);
                 else {
                     const oldBin = localStorage.getItem(this.getStorageKey('bin_id'));
@@ -1027,22 +1159,6 @@
                 document.getElementById('config-modal').classList.remove('show');
                 this.showToast('Configuration saved');
                 this.checkSyncReady();
-            }
-
-            updateSyncButton(state) {
-                const btn = document.getElementById('refresh-btn');
-                btn.className = 'btn'; 
-                if (state === 'success') {
-                    btn.classList.add('btn-sync-success');
-                    btn.textContent = '✔ SYNC';
-                } else if (state === 'error') {
-                    btn.classList.add('btn-sync-error');
-                    btn.textContent = '✖ SYNC';
-                } else if (state === 'loading') {
-                    btn.textContent = '...';
-                } else {
-                    btn.textContent = '↻ SYNC';
-                }
             }
 
             showToast(msg) {

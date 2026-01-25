@@ -47,21 +47,36 @@
         .kpi-value { font-size: 24px; font-weight: 700; color: var(--text); text-align: center; }
         .kpi-value.highlight { color: var(--primary); }
 
-        /* FILTER SECTION */
-        .filter-section { margin-bottom: 20px; display: none; flex-direction: column; gap: 8px; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
-        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .filter-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-light); }
-        .filter-reset { font-size: 11px; color: var(--danger); cursor: pointer; text-decoration: underline; font-weight: 600; }
-        .filter-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-        .filter-group-label { font-size: 12px; font-weight: 600; color: var(--text); margin-right: 5px; min-width: 60px; }
-        .filter-chip { 
-            font-size: 11px; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border); 
-            background: #f8fafc; color: var(--text-light); cursor: pointer; transition: all 0.2s; user-select: none; 
+        /* FILTER SECTION (SUPER COMPACT) */
+        .filter-section { 
+            margin-bottom: 20px; display: none; background: var(--surface); 
+            padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border); 
         }
-        .filter-chip:hover { background: #e2e8f0; color: var(--text); }
-        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .filter-chip.disabled { opacity: 0.4; cursor: not-allowed; background: #e2e8f0; color: #94a3b8; pointer-events: none; }
+        
+        /* Flex container for content */
+        .filter-body {
+            display: flex; flex-wrap: wrap; gap: 15px 20px; align-items: center;
+        }
 
+        .filter-group { 
+            display: flex; align-items: center; gap: 8px; 
+            padding-right: 20px; border-right: 1px dashed #cbd5e1; 
+        }
+        .filter-group:last-child { border-right: none; padding-right: 0; }
+
+        .filter-group-label { 
+            font-size: 11px; font-weight: 700; color: var(--text); 
+            text-transform: uppercase; white-space: nowrap; 
+        }
+        
+        .filter-chip { 
+            font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); 
+            background: #f8fafc; color: var(--text-light); cursor: pointer; transition: all 0.1s; user-select: none;
+            font-weight: 500;
+        }
+        .filter-chip:hover { background: #e2e8f0; color: var(--text); border-color: #cbd5e1; }
+        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
         /* Buttons */
         .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { background: #f1f5f9; }
@@ -463,7 +478,7 @@
 
                 document.getElementById('search-input').addEventListener('input', (e) => {
                     this.renderTable(e.target.value);
-                    this.renderFilters(); // Re-calc valid options on search
+                    this.renderFilters(); 
                 });
             }
 
@@ -634,7 +649,7 @@
                 });
             }
 
-            // --- FILTER LOGIC (UPDATED: DEPENDENT FILTERS) ---
+            // --- SUPER COMPACT FILTERS (NO CLEAR ALL BUTTON) ---
             renderFilters() {
                 const container = document.getElementById('filter-container');
                 const selectors = this.db.schema.filter(f => f.type === 'select' && f.options && f.options.length > 0);
@@ -644,49 +659,23 @@
                     return;
                 }
                 
-                container.style.display = 'flex';
+                container.style.display = 'block'; 
                 container.innerHTML = '';
-                
-                // --- 1. Calcular Datos Válidos Actuales ---
-                // Para hacer filtros dependientes, necesitamos saber qué items "sobreviven"
-                // a los filtros *actualmente activos* (exceptuando el filtro del grupo que estamos pintando)
                 
                 const currentSearchText = document.getElementById('search-input').value.toLowerCase();
 
-                // Header
-                const header = document.createElement('div');
-                header.className = 'filter-header';
-                const title = document.createElement('span');
-                title.className = 'filter-title';
-                title.textContent = 'Smart Filters';
-                header.appendChild(title);
-                
-                if (Object.keys(this.activeFilters).length > 0) {
-                    const clearBtn = document.createElement('span');
-                    clearBtn.className = 'filter-reset';
-                    clearBtn.textContent = 'Clear All';
-                    clearBtn.onclick = () => {
-                        this.activeFilters = {};
-                        this.renderFilters();
-                        this.renderTable(document.getElementById('search-input').value);
-                    };
-                    header.appendChild(clearBtn);
-                }
-                container.appendChild(header);
+                // Just the body wrapper
+                const body = document.createElement('div');
+                body.className = 'filter-body';
+                container.appendChild(body);
 
-                // Render groups
                 selectors.forEach(field => {
-                    // Calculamos qué opciones son válidas para ESTE campo,
-                    // basándonos en los filtros aplicados en LOS OTROS campos.
                     const validOptionsForThisField = new Set();
                     
                     this.db.items.forEach(item => {
-                        // 1. ¿Cumple la búsqueda de texto?
                         const matchesSearch = !currentSearchText || Object.values(item).some(val => String(val).toLowerCase().includes(currentSearchText));
-                        
-                        // 2. ¿Cumple los OTROS filtros activos? (Ignoramos el filtro de este mismo campo para no ocultar la opción seleccionada)
                         const matchesOtherFilters = Object.entries(this.activeFilters).every(([k, v]) => {
-                            if (k === field.key) return true; // Ignorar self
+                            if (k === field.key) return true;
                             return item[k] === v;
                         });
 
@@ -695,56 +684,45 @@
                         }
                     });
 
-                    // Si NO hay filtros activos en absoluto, mostramos todas las opciones del esquema
-                    // para evitar que el filtro desaparezca si no hay datos aún.
-                    // Pero si hay datos, preferimos mostrar solo lo existente.
                     const showAllBecauseNoData = this.db.items.length === 0;
 
-                    const row = document.createElement('div');
-                    row.className = 'filter-row';
+                    // Group wrapper
+                    const group = document.createElement('div');
+                    group.className = 'filter-group';
                     
                     const label = document.createElement('span');
                     label.className = 'filter-group-label';
                     label.textContent = field.key;
-                    row.appendChild(label);
+                    group.appendChild(label);
+
+                    let hasVisibleChips = false;
 
                     field.options.forEach(opt => {
-                        // Decidir si mostrar el chip
-                        // Se muestra si:
-                        // A) Es la opción actualmente seleccionada (active)
-                        // B) O si existe en el set de opciones válidas (validOptionsForThisField)
-                        // C) O si no hay datos en absoluto (estado inicial vacío)
                         const isActive = this.activeFilters[field.key] === opt;
                         const isValid = validOptionsForThisField.has(opt);
 
-                        // Si quieres Ocultar los inválidos:
                         if (!isActive && !isValid && !showAllBecauseNoData) return;
 
-                        // (Opcional) Si prefieres mostrarlos deshabilitados en vez de ocultos, usa esto:
-                        // const isDisabled = !isActive && !isValid && !showAllBecauseNoData;
+                        hasVisibleChips = true;
                         
                         const chip = document.createElement('span');
                         chip.className = `filter-chip ${isActive ? 'active' : ''}`;
                         chip.textContent = opt;
                         
-                        // Si usas modo disabled visual:
-                        // if(isDisabled) chip.classList.add('disabled');
-
                         chip.onclick = () => {
                             if (isActive) {
                                 delete this.activeFilters[field.key];
                             } else {
                                 this.activeFilters[field.key] = opt;
                             }
-                            this.renderFilters(); // Re-render filter states
+                            this.renderFilters();
                             this.renderTable(document.getElementById('search-input').value);
                         };
-                        row.appendChild(chip);
+                        group.appendChild(chip);
                     });
                     
-                    // Solo añadir la fila si tiene al menos un chip visible
-                    if (row.children.length > 1) { 
-                        container.appendChild(row);
+                    if (hasVisibleChips) { 
+                        body.appendChild(group);
                     }
                 });
             }
@@ -1220,7 +1198,6 @@
                 this.showToast('Saved locally');
                 this.showView('list');
                 
-                // Actualizar filtros por si el nuevo item habilita nuevas opciones
                 this.renderFilters(); 
 
                 if(this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);

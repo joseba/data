@@ -170,6 +170,11 @@
         /* Toast */
         .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 6px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 3000; }
         .toast.show { opacity: 1; }
+
+        /* Copy Modal Specifics */
+        .checkbox-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin: 15px 0; border: 1px solid var(--border); padding: 10px; border-radius: 6px; }
+        .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 5px; cursor: pointer; }
+        .checkbox-item:hover { background: #f1f5f9; }
     </style>
 </head>
 <body>
@@ -197,6 +202,7 @@
                 <button class="btn btn-danger-solid" id="delete-all-btn" title="Delete All Records">DESTROY</button>
                 <button class="btn" id="export-btn" title="Download CSV">EXPORT</button>
                 <button class="btn" id="import-btn" title="Upload CSV">IMPORT</button>
+                <button class="btn" id="copy-clipboard-btn" title="Copy visible data to clipboard">COPY</button>
                 <button class="btn" id="refresh-btn" title="Toggle Auto-Sync">SYNC</button>
                 <button class="btn" id="config-btn">CONFIG</button>
                 <button class="btn btn-primary" id="add-btn">NEW</button>
@@ -316,6 +322,43 @@
             </div>
         </div>
     </div>
+    
+    <div class="overlay" id="token-modal">
+        <div class="modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Access Shared Data</h3>
+            </div>
+            <p style="font-size: 13px; margin-bottom: 20px; color: var(--text-light);">
+                You are accessing context: <b><span id="token-modal-context"></span></b>.<br>
+                This database is protected. Please enter the JSONBin API Key.
+            </p>
+            
+            <div class="form-group">
+                <label class="form-label">API Token / Key</label>
+                <input type="password" class="form-input" id="quick-api-key" placeholder="$2a$10...">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" id="cancel-token" style="flex: 1;">Close</button>
+                <button class="btn btn-primary" id="save-token-btn" style="flex: 1;">Load Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="copy-modal">
+        <div class="modal">
+            <h3 style="margin-bottom:10px;">Copy to Clipboard</h3>
+            <p style="font-size:12px; color:var(--text-light);">Select columns to copy from the filtered view.</p>
+            
+            <div class="checkbox-list" id="copy-columns-list">
+                </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" id="cancel-copy" style="flex: 1;">Cancel</button>
+                <button class="btn btn-primary" id="confirm-copy" style="flex: 1;">OK (Enter)</button>
+            </div>
+        </div>
+    </div>
 
     <div class="toast" id="toast">Message</div>
 
@@ -332,6 +375,8 @@
                 this.autoSyncEnabled = true;
                 this.RECENT_KEY = 'global_recent_contexts'; 
                 this.GLOBAL_API_KEY = 'global_jsonbin_api_key'; 
+                this.sortColumn = 'name';
+                this.sortDirection = 'asc';
                 this.init();
             }
 
@@ -436,9 +481,17 @@
                 this.renderTable();
                 
                 const globalKey = localStorage.getItem(this.GLOBAL_API_KEY);
+                const hasBinId = localStorage.getItem(this.getStorageKey('bin_id'));
+
                 if (!globalKey) {
-                    this.openConfig();
-                    this.showToast('Please configure your Global API Key');
+                    // MODIFIED LOGIC: If we have a bin-id but no key (Shared Link scenario), show simple modal
+                    if (hasBinId) {
+                        this.openTokenModal();
+                    } else {
+                        // Standard config if nothing is set up
+                        this.openConfig();
+                        this.showToast('Please configure your Global API Key');
+                    }
                 } else {
                     this.checkSyncReady(); 
                 }
@@ -470,6 +523,25 @@
                 document.getElementById('schema-add-btn').addEventListener('click', () => this.addOrUpdateSchemaField());
                 document.getElementById('schema-cancel-edit-btn').addEventListener('click', () => this.resetSchemaForm());
                 
+                // Copy Functionality
+                document.getElementById('copy-clipboard-btn').addEventListener('click', () => this.openCopyModal());
+                document.getElementById('cancel-copy').addEventListener('click', () => document.getElementById('copy-modal').classList.remove('show'));
+                document.getElementById('confirm-copy').addEventListener('click', () => this.executeCopy());
+                document.getElementById('copy-modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'copy-modal') document.getElementById('copy-modal').classList.remove('show');
+                });
+                // Capture ENTER for Copy Modal
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && document.getElementById('copy-modal').classList.contains('show')) {
+                        e.preventDefault();
+                        this.executeCopy();
+                    }
+                });
+
+                // TOKEN MODAL EVENTS
+                document.getElementById('save-token-btn').addEventListener('click', () => this.saveQuickToken());
+                document.getElementById('cancel-token').addEventListener('click', () => document.getElementById('token-modal').classList.remove('show'));
+
                 document.getElementById('schema-new-type').addEventListener('change', (e) => {
                     const type = e.target.value;
                     document.getElementById('schema-options-row').classList.toggle('show', type === 'select');
@@ -479,6 +551,112 @@
                 document.getElementById('search-input').addEventListener('input', (e) => {
                     this.renderTable(e.target.value);
                     this.renderFilters(); 
+                });
+            }
+
+            openTokenModal() {
+                const modal = document.getElementById('token-modal');
+                document.getElementById('token-modal-context').textContent = this.context;
+                document.getElementById('quick-api-key').value = '';
+                modal.classList.add('show');
+                document.getElementById('quick-api-key').focus();
+            }
+
+            saveQuickToken() {
+                const key = document.getElementById('quick-api-key').value.trim();
+                if (key) {
+                    localStorage.setItem(this.GLOBAL_API_KEY, key);
+                    document.getElementById('token-modal').classList.remove('show');
+                    this.showToast('Key saved');
+                    this.checkSyncReady();
+                } else {
+                    this.showToast('Please enter a key');
+                }
+            }
+
+            openCopyModal() {
+                const modal = document.getElementById('copy-modal');
+                const list = document.getElementById('copy-columns-list');
+                list.innerHTML = '';
+
+                // Always add Name, checked by default
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'checkbox-item';
+                nameDiv.innerHTML = `<input type="checkbox" value="name" checked> <span>Name</span>`;
+                list.appendChild(nameDiv);
+
+                // Add other schema fields, unchecked by default
+                this.db.schema.forEach(field => {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item';
+                    div.innerHTML = `<input type="checkbox" value="${field.key}"> <span>${field.key}</span>`;
+                    list.appendChild(div);
+                });
+
+                modal.classList.add('show');
+                document.getElementById('confirm-copy').focus();
+            }
+
+            executeCopy() {
+                const list = document.getElementById('copy-columns-list');
+                const checkboxes = list.querySelectorAll('input[type="checkbox"]:checked');
+                const selectedColumns = Array.from(checkboxes).map(cb => cb.value);
+
+                if (selectedColumns.length === 0) {
+                    this.showToast('Please select at least one column');
+                    return;
+                }
+
+                // Filter Data based on current view (Search + Filters)
+                const filterText = document.getElementById('search-input').value.toLowerCase();
+                const filteredItems = this.db.items.filter(item => {
+                    const matchesSearch = !item || !item.name ? false : 
+                        Object.values(item).some(val => String(val).toLowerCase().includes(filterText));
+                    
+                    const matchesFilters = Object.entries(this.activeFilters).every(([key, val]) => {
+                        return item[key] === val;
+                    });
+
+                    return item && item.id && item.name && matchesSearch && matchesFilters;
+                });
+
+                // Apply Sort (same as renderTable)
+                filteredItems.sort((a, b) => {
+                    let valA = a[this.sortColumn] || '';
+                    let valB = b[this.sortColumn] || '';
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB)) { valA = numA; valB = numB; }
+                    else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); }
+                    if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                // Generate CSV string
+                const csvRows = [];
+                // Header
+                csvRows.push(selectedColumns.map(h => `"${h}"`).join(';'));
+                
+                // Body
+                filteredItems.forEach(item => {
+                    const row = selectedColumns.map(col => {
+                        let val = item[col] || '';
+                        val = String(val).replace(/"/g, '""'); // Escape double quotes
+                        return `"${val}"`;
+                    });
+                    csvRows.push(row.join(';'));
+                });
+
+                const csvString = csvRows.join('\n');
+
+                // Copy to Clipboard
+                navigator.clipboard.writeText(csvString).then(() => {
+                    this.showToast(`Copied ${filteredItems.length} rows to clipboard!`);
+                    document.getElementById('copy-modal').classList.remove('show');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    this.showToast('Failed to copy to clipboard');
                 });
             }
 
@@ -535,7 +713,7 @@
 
                 try {
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-                        headers: { 'X-Master-Key': apiKey }
+                        headers: { 'X-Access-Key': apiKey }
                     });
 
                     if (!res.ok) throw new Error('Fetch failed');
@@ -561,6 +739,7 @@
                 } catch (e) {
                     console.error(e);
                     this.updateSyncButton('error');
+                    this.showToast('Auth error or bad bin');
                 }
             }
 
@@ -579,7 +758,7 @@
                 try {
                     await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+                        headers: { 'Content-Type': 'application/json', 'X-Access-Key': apiKey },
                         body: JSON.stringify(payload)
                     });
                     this.updateSyncButton('success');
@@ -600,7 +779,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Master-Key': apiKey,
+                            'X-Access-Key': apiKey,
                             'X-Bin-Name': this.context
                         },
                         body: JSON.stringify(payload)
@@ -1066,6 +1245,16 @@
                 }
             }
 
+            handleSort(key) {
+                if (this.sortColumn === key) {
+                    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.sortColumn = key;
+                    this.sortDirection = 'asc';
+                }
+                this.renderTable(document.getElementById('search-input').value);
+            }
+
             renderTable(filterText = '') {
                 const tbody = document.querySelector('#data-table tbody');
                 const thead = document.querySelector('#data-table thead');
@@ -1083,6 +1272,26 @@
                     return item && item.id && item.name && matchesSearch && matchesFilters;
                 });
 
+                // SORTING LOGIC
+                displayItems.sort((a, b) => {
+                    let valA = a[this.sortColumn] || '';
+                    let valB = b[this.sortColumn] || '';
+
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        valA = numA;
+                        valB = numB;
+                    } else {
+                        valA = String(valA).toLowerCase();
+                        valB = String(valB).toLowerCase();
+                    }
+
+                    if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
                 this.updateKPIs(displayItems);
 
                 if (displayItems.length === 0) {
@@ -1095,8 +1304,10 @@
                 emptyState.style.display = 'none';
 
                 const visibleFields = this.db.schema.filter(f => f.showInList && f.key.toLowerCase() !== 'name');
-                let headerHTML = '<tr><th>Name</th>'; 
-                visibleFields.forEach(f => headerHTML += `<th>${f.key}</th>`);
+                const getArrow = (col) => this.sortColumn === col ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
+
+                let headerHTML = `<tr style="cursor:pointer"><th onclick="app.handleSort('name')">Name${getArrow('name')}</th>`; 
+                visibleFields.forEach(f => headerHTML += `<th onclick="app.handleSort('${f.key}')">${f.key}${getArrow(f.key)}</th>`);
                 headerHTML += '</tr>';
                 thead.innerHTML = headerHTML;
 

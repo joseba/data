@@ -139,6 +139,9 @@
         tr:hover { background: #f8fafc; cursor: pointer; }
         tr:last-child td { border-bottom: none; }
 
+        .action-icon-link { text-decoration: none; font-size: 16px; display: inline-block; padding: 2px 5px; transition: transform 0.2s; }
+        .action-icon-link:hover { transform: scale(1.2); }
+
         /* Forms */
         .form-card { background: var(--surface); padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
         .form-group { margin-bottom: 15px; }
@@ -269,6 +272,12 @@
             <div class="form-group">
                 <label class="form-label">Bin ID (Specific for this Context)</label>
                 <input type="text" class="form-input" id="conf-bin-id" placeholder="65a...">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Global Action URL (Prefix)</label>
+                <input type="text" class="form-input" id="conf-base-url" placeholder="https://google.com/search?q=">
+                <small style="color: var(--text-light); font-size: 11px;">If set, adds a link icon to each row: Base URL + Name.</small>
             </div>
 
             <div class="schema-section">
@@ -484,11 +493,9 @@
                 const hasBinId = localStorage.getItem(this.getStorageKey('bin_id'));
 
                 if (!globalKey) {
-                    // MODIFIED LOGIC: If we have a bin-id but no key (Shared Link scenario), show simple modal
                     if (hasBinId) {
                         this.openTokenModal();
                     } else {
-                        // Standard config if nothing is set up
                         this.openConfig();
                         this.showToast('Please configure your Global API Key');
                     }
@@ -579,13 +586,11 @@
                 const list = document.getElementById('copy-columns-list');
                 list.innerHTML = '';
 
-                // Always add Name, checked by default
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'checkbox-item';
                 nameDiv.innerHTML = `<input type="checkbox" value="name" checked> <span>Name</span>`;
                 list.appendChild(nameDiv);
 
-                // Add other schema fields, unchecked by default
                 this.db.schema.forEach(field => {
                     const div = document.createElement('div');
                     div.className = 'checkbox-item';
@@ -607,7 +612,6 @@
                     return;
                 }
 
-                // Filter Data based on current view (Search + Filters)
                 const filterText = document.getElementById('search-input').value.toLowerCase();
                 const filteredItems = this.db.items.filter(item => {
                     const matchesSearch = !item || !item.name ? false : 
@@ -620,7 +624,6 @@
                     return item && item.id && item.name && matchesSearch && matchesFilters;
                 });
 
-                // Apply Sort (same as renderTable)
                 filteredItems.sort((a, b) => {
                     let valA = a[this.sortColumn] || '';
                     let valB = b[this.sortColumn] || '';
@@ -633,16 +636,13 @@
                     return 0;
                 });
 
-                // Generate CSV string
                 const csvRows = [];
-                // Header
                 csvRows.push(selectedColumns.map(h => `"${h}"`).join(';'));
                 
-                // Body
                 filteredItems.forEach(item => {
                     const row = selectedColumns.map(col => {
                         let val = item[col] || '';
-                        val = String(val).replace(/"/g, '""'); // Escape double quotes
+                        val = String(val).replace(/"/g, '""');
                         return `"${val}"`;
                     });
                     csvRows.push(row.join(';'));
@@ -650,7 +650,6 @@
 
                 const csvString = csvRows.join('\n');
 
-                // Copy to Clipboard
                 navigator.clipboard.writeText(csvString).then(() => {
                     this.showToast(`Copied ${filteredItems.length} rows to clipboard!`);
                     document.getElementById('copy-modal').classList.remove('show');
@@ -828,7 +827,6 @@
                 });
             }
 
-            // --- SUPER COMPACT FILTERS (NO CLEAR ALL BUTTON) ---
             renderFilters() {
                 const container = document.getElementById('filter-container');
                 const selectors = this.db.schema.filter(f => f.type === 'select' && f.options && f.options.length > 0);
@@ -843,7 +841,6 @@
                 
                 const currentSearchText = document.getElementById('search-input').value.toLowerCase();
 
-                // Just the body wrapper
                 const body = document.createElement('div');
                 body.className = 'filter-body';
                 container.appendChild(body);
@@ -865,7 +862,6 @@
 
                     const showAllBecauseNoData = this.db.items.length === 0;
 
-                    // Group wrapper
                     const group = document.createElement('div');
                     group.className = 'filter-group';
                     
@@ -1261,6 +1257,9 @@
                 const emptyState = document.getElementById('empty-state');
                 const tableContainer = document.querySelector('.table-container');
 
+                // Get Global Base URL
+                const baseUrl = localStorage.getItem(this.getStorageKey('base_url'));
+
                 let displayItems = this.db.items.filter(item => {
                     const matchesSearch = !item || !item.name ? false : 
                         Object.values(item).some(val => String(val).toLowerCase().includes(filterText.toLowerCase()));
@@ -1306,13 +1305,28 @@
                 const visibleFields = this.db.schema.filter(f => f.showInList && f.key.toLowerCase() !== 'name');
                 const getArrow = (col) => this.sortColumn === col ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
 
-                let headerHTML = `<tr style="cursor:pointer"><th onclick="app.handleSort('name')">Name${getArrow('name')}</th>`; 
+                let headerHTML = `<tr style="cursor:pointer">`;
+                
+                // New Action Column Header if URL exists
+                if (baseUrl) {
+                    headerHTML += `<th style="width: 40px; text-align: center;">🔗</th>`;
+                }
+
+                headerHTML += `<th onclick="app.handleSort('name')">Name${getArrow('name')}</th>`; 
                 visibleFields.forEach(f => headerHTML += `<th onclick="app.handleSort('${f.key}')">${f.key}${getArrow(f.key)}</th>`);
                 headerHTML += '</tr>';
                 thead.innerHTML = headerHTML;
 
                 tbody.innerHTML = displayItems.map(item => {
                     let rowHTML = `<tr onclick="app.editItem('${item.id}')">`;
+                    
+                    // New Action Column Cell if URL exists
+                    if (baseUrl) {
+                        const fullUrl = baseUrl + encodeURIComponent(item.name);
+                        // event.stopPropagation prevents the row click (Edit) from firing when clicking the link
+                        rowHTML += `<td style="text-align: center;"><a href="${fullUrl}" target="_blank" class="action-icon-link" onclick="event.stopPropagation()">🔗</a></td>`;
+                    }
+
                     rowHTML += `<td><strong>${item.name || '(No Name)'}</strong></td>`;
                     visibleFields.forEach(f => rowHTML += `<td>${item[f.key] || '<span style="color:#cbd5e1">-</span>'}</td>`);
                     rowHTML += '</tr>';
@@ -1430,6 +1444,9 @@
                 document.getElementById('modal-context').textContent = this.context;
                 document.getElementById('conf-api-key').value = localStorage.getItem(this.GLOBAL_API_KEY) || '';
                 document.getElementById('conf-bin-id').value = localStorage.getItem(this.getStorageKey('bin_id')) || '';
+                // Load Base URL
+                document.getElementById('conf-base-url').value = localStorage.getItem(this.getStorageKey('base_url')) || '';
+                
                 this.renderSchemaList(); 
                 modal.classList.add('show');
             }
@@ -1437,15 +1454,24 @@
             saveConfiguration() {
                 const apiKey = document.getElementById('conf-api-key').value.trim();
                 const binId = document.getElementById('conf-bin-id').value.trim();
+                const baseUrl = document.getElementById('conf-base-url').value.trim();
+                
                 if (apiKey) localStorage.setItem(this.GLOBAL_API_KEY, apiKey);
+                
                 if (binId) localStorage.setItem(this.getStorageKey('bin_id'), binId);
                 else {
                     const oldBin = localStorage.getItem(this.getStorageKey('bin_id'));
                     if(!oldBin) localStorage.removeItem(this.getStorageKey('bin_id'));
                 }
+
+                if (baseUrl) localStorage.setItem(this.getStorageKey('base_url'), baseUrl);
+                else localStorage.removeItem(this.getStorageKey('base_url'));
+
                 document.getElementById('config-modal').classList.remove('show');
                 this.showToast('Configuration saved');
                 this.checkSyncReady();
+                // Re-render table to show/hide the link column
+                this.renderTable(document.getElementById('search-input').value);
             }
 
             showToast(msg) {

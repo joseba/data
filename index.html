@@ -720,6 +720,11 @@
                     const data = await res.json();
                     const record = data.record || {};
 
+                    // RECOVER URL IF PRESENT
+                    if (record.baseUrl !== undefined) {
+                        localStorage.setItem(this.getStorageKey('base_url'), record.baseUrl);
+                    }
+
                     if (Array.isArray(record)) {
                         this.db.items = record.filter(i => i && i.id && i.name);
                     } else {
@@ -749,9 +754,11 @@
 
                 this.updateSyncButton('loading');
 
+                // ADD BASE URL TO PAYLOAD
                 const payload = {
                     schema: this.db.schema,
-                    items: this.db.items
+                    items: this.db.items,
+                    baseUrl: localStorage.getItem(this.getStorageKey('base_url')) || ''
                 };
 
                 try {
@@ -1384,7 +1391,7 @@
                     } else {
                         const input = document.createElement('input');
                         input.type = field.type === 'number' ? 'number' : 'text';
-                        if(field.type === 'number') input.step = 'any'; 
+                        if(field.type === 'number' && field.kpiMode !== 'none') input.step = 'any';
                         input.className = 'form-input';
                         input.name = `custom_${field.key}`;
                         input.dataset.key = field.key;
@@ -1469,6 +1476,10 @@
 
                 document.getElementById('config-modal').classList.remove('show');
                 this.showToast('Configuration saved');
+                
+                // FORCE SYNC IF URL CHANGED
+                if(this.autoSyncEnabled) this.syncToCloud();
+
                 this.checkSyncReady();
                 // Re-render table to show/hide the link column
                 this.renderTable(document.getElementById('search-input').value);

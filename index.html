@@ -148,6 +148,7 @@
         .form-label { display: block; margin-bottom: 5px; font-weight: 500; color: var(--text-light); font-size: 12px; }
         .form-input, .form-select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; background: white; }
         .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+        textarea.form-input { resize: vertical; min-height: 80px; } 
 
         /* Search */
         .search-bar { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
@@ -293,6 +294,7 @@
                             <option value="text">Text</option>
                             <option value="number">Number</option>
                             <option value="select">Selector</option>
+                            <option value="notes">Notes</option>
                         </select>
                     </div>
                     
@@ -314,9 +316,14 @@
                     </div>
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-                        <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
-                            <input type="checkbox" id="schema-new-show" checked> Show in List
-                        </label>
+                        <div style="display:flex; gap:15px;">
+                            <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                <input type="checkbox" id="schema-new-show" checked> Show in List
+                            </label>
+                            <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                <input type="checkbox" id="schema-new-filterable"> Filter
+                            </label>
+                        </div>
                         <div>
                             <button class="btn btn-sm" id="schema-cancel-edit-btn" style="display:none; margin-right:5px;">Cancel</button>
                             <button class="btn btn-primary btn-sm" id="schema-add-btn">Add Field</button>
@@ -836,9 +843,10 @@
 
             renderFilters() {
                 const container = document.getElementById('filter-container');
-                const selectors = this.db.schema.filter(f => f.type === 'select' && f.options && f.options.length > 0);
+                // Ahora filtramos por la propiedad filterable (si está activa)
+                const filterableFields = this.db.schema.filter(f => f.filterable);
                 
-                if (selectors.length === 0) {
+                if (filterableFields.length === 0) {
                     container.style.display = 'none';
                     return;
                 }
@@ -852,10 +860,14 @@
                 body.className = 'filter-body';
                 container.appendChild(body);
 
-                selectors.forEach(field => {
+                filterableFields.forEach(field => {
                     const validOptionsForThisField = new Set();
+                    const allPresentValues = new Set();
                     
                     this.db.items.forEach(item => {
+                        // Extraemos todos los valores existentes para este campo en los datos
+                        if (item[field.key]) allPresentValues.add(item[field.key]);
+
                         const matchesSearch = !currentSearchText || Object.values(item).some(val => String(val).toLowerCase().includes(currentSearchText));
                         const matchesOtherFilters = Object.entries(this.activeFilters).every(([k, v]) => {
                             if (k === field.key) return true;
@@ -869,6 +881,16 @@
 
                     const showAllBecauseNoData = this.db.items.length === 0;
 
+                    let optionsToRender = [];
+                    // Si es un selector, usamos las opciones definidas; sino, usamos los valores únicos presentes.
+                    if (field.type === 'select' && field.options && field.options.length > 0) {
+                        optionsToRender = field.options;
+                    } else {
+                        optionsToRender = Array.from(allPresentValues).sort();
+                    }
+
+                    if (optionsToRender.length === 0 && !showAllBecauseNoData) return;
+
                     const group = document.createElement('div');
                     group.className = 'filter-group';
                     
@@ -879,7 +901,7 @@
 
                     let hasVisibleChips = false;
 
-                    field.options.forEach(opt => {
+                    optionsToRender.forEach(opt => {
                         const isActive = this.activeFilters[field.key] === opt;
                         const isValid = validOptionsForThisField.has(opt);
 
@@ -949,7 +971,8 @@
 
                     let meta = field.type.toUpperCase();
                     if(field.type === 'number' && field.kpiMode) meta += ` (${field.kpiMode.toUpperCase()})`;
-                    meta += ` | ${field.showInList ? 'VISIBLE' : 'HIDDEN'}`;
+                    // Añadimos indicador de si es filtrable
+                    meta += ` | ${field.showInList ? 'VISIBLE' : 'HIDDEN'} | ${field.filterable ? 'FILTER' : 'NO FILTER'}`;
 
                     div.innerHTML = `
                         <div class="schema-content-wrapper">
@@ -975,6 +998,7 @@
                 document.getElementById('schema-new-name').value = field.key;
                 document.getElementById('schema-new-type').value = field.type;
                 document.getElementById('schema-new-show').checked = field.showInList;
+                document.getElementById('schema-new-filterable').checked = !!field.filterable;
                 document.getElementById('schema-new-options').value = field.options ? field.options.join(', ') : '';
                 document.getElementById('schema-new-iskpi').checked = !!field.kpiMode;
                 document.getElementById('schema-new-kpiop').value = (field.kpiMode === 'avg' ? 'avg' : 'sum');
@@ -991,6 +1015,7 @@
                 document.getElementById('schema-new-name').value = '';
                 document.getElementById('schema-new-type').value = 'text';
                 document.getElementById('schema-new-show').checked = true;
+                document.getElementById('schema-new-filterable').checked = false;
                 document.getElementById('schema-new-options').value = '';
                 document.getElementById('schema-new-iskpi').checked = false;
                 document.getElementById('schema-new-kpiop').value = 'sum';
@@ -1006,6 +1031,7 @@
                 const nameInput = document.getElementById('schema-new-name');
                 const typeInput = document.getElementById('schema-new-type');
                 const showInput = document.getElementById('schema-new-show');
+                const filterableInput = document.getElementById('schema-new-filterable');
                 const optsInput = document.getElementById('schema-new-options');
                 
                 const isKpiInput = document.getElementById('schema-new-iskpi');
@@ -1014,6 +1040,7 @@
                 const key = nameInput.value.trim();
                 const type = typeInput.value;
                 const showInList = showInput.checked;
+                const filterable = filterableInput.checked;
                 
                 if (!key) return;
                 
@@ -1027,7 +1054,7 @@
                     return;
                 }
                 
-                const fieldDef = { key, type, showInList };
+                const fieldDef = { key, type, showInList, filterable };
                 
                 if (type === 'select') {
                     const opts = optsInput.value.split(',').map(s => s.trim()).filter(s => s);
@@ -1388,6 +1415,14 @@
                             select.appendChild(option);
                         });
                         containerDiv.appendChild(select);
+                    } else if (field.type === 'notes') {
+                        const textarea = document.createElement('textarea');
+                        textarea.className = 'form-input';
+                        textarea.name = `custom_${field.key}`;
+                        textarea.dataset.key = field.key;
+                        textarea.value = itemValues[field.key] || '';
+                        textarea.rows = 4;
+                        containerDiv.appendChild(textarea);
                     } else {
                         const input = document.createElement('input');
                         input.type = field.type === 'number' ? 'number' : 'text';

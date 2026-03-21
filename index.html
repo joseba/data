@@ -148,7 +148,18 @@
         .form-label { display: block; margin-bottom: 5px; font-weight: 500; color: var(--text-light); font-size: 12px; }
         .form-input, .form-select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; background: white; }
         .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
-        textarea.form-input { resize: vertical; min-height: 80px; } 
+        textarea.form-input { resize: vertical; min-height: 6em; } 
+
+        /* Read-only field value */
+        .detail-row { display: flex; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; gap: 8px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row-key { font-weight: 600; color: var(--text-muted, #64748b); white-space: nowrap; flex-shrink: 0; min-width: 120px; }
+        .detail-row-value { color: var(--text); white-space: pre-wrap; word-break: break-word; }
+        .detail-row-value.empty { color: #cbd5e1; }
+        .detail-row-checklist { align-items: flex-start; }
+        .detail-checklist { display: flex; flex-direction: column; gap: 4px; }
+        .detail-checklist-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text); user-select: none; }
+        .detail-checklist-cb { width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; accent-color: var(--primary, #3b82f6); }
 
         /* Search */
         .search-bar { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
@@ -179,6 +190,15 @@
         .checkbox-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin: 15px 0; border: 1px solid var(--border); padding: 10px; border-radius: 6px; }
         .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 5px; cursor: pointer; }
         .checkbox-item:hover { background: #f1f5f9; }
+
+        /* Mode Toggle Switch */
+        .mode-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+        .mode-toggle-track { width: 36px; height: 20px; border-radius: 10px; background: var(--primary); position: relative; transition: background 0.2s; }
+        .mode-toggle-track.view-mode { background: var(--black); }
+        .mode-toggle-track .mode-toggle-thumb { width: 16px; height: 16px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
+        .mode-toggle-track.view-mode .mode-toggle-thumb { left: 18px; }
+        .mode-toggle-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-light); min-width: 38px; }
+
     </style>
 </head>
 <body>
@@ -210,6 +230,10 @@
                 <button class="btn" id="refresh-btn" title="Toggle Auto-Sync">SYNC</button>
                 <button class="btn" id="config-btn">CONFIG</button>
                 <button class="btn btn-primary" id="add-btn">NEW</button>
+                <div class="mode-toggle" id="mode-toggle" title="Switch between Edit and View mode">
+                    <span class="mode-toggle-label" id="mode-label">EDIT</span>
+                    <div class="mode-toggle-track" id="mode-track"><div class="mode-toggle-thumb"></div></div>
+                </div>
             </div>
         </div>
 
@@ -232,25 +256,44 @@
             </div>
         </div>
 
+        <div id="detail-view" class="view-section">
+            <div class="form-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <h2 id="detail-title">View Record</h2>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-sm btn-primary" id="detail-edit-btn">Edit</button>
+                        <button class="btn btn-sm" id="detail-back-btn">Back</button>
+                    </div>
+                </div>
+                <div id="detail-fields-container"></div>
+            </div>
+        </div>
+
         <div id="edit-view" class="view-section">
             <div class="form-card">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                     <h2 id="form-title">Edit Record</h2>
-                    <button class="btn btn-sm" id="back-btn">Cancel</button>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-sm" id="edit-view-btn" style="display:none;">View</button>
+                        <button class="btn btn-sm" id="back-btn">Cancel</button>
+                    </div>
                 </div>
                 <form id="item-form">
                     <div class="form-group">
-                        <label class="form-label">Name (Primary Identifier)</label>
+                        <label class="form-label">NAME</label>
                         <input type="text" class="form-input" id="field-name" required>
                     </div>
                     <div id="dynamic-fields-container"></div>
                     <div style="margin-top: 30px; display: flex; gap: 10px;">
-                        <button type="submit" class="btn btn-primary" style="flex: 1;">Save Record</button>
+                        <button type="submit" class="btn btn-primary" id="save-btn" style="flex: 1;" onclick="app.saveAndClose=false">Save</button>
+                        <button type="submit" class="btn btn-primary" id="save-close-btn" style="flex: 1;" onclick="app.saveAndClose=true">Save &amp; Close</button>
                         <button type="button" class="btn btn-danger" id="delete-btn" style="display: none;">Delete</button>
                     </div>
                 </form>
             </div>
         </div>
+
+
     </div>
 
     <input type="file" id="file-import-input" accept=".csv" style="display: none;">
@@ -295,6 +338,7 @@
                             <option value="number">Number</option>
                             <option value="select">Selector</option>
                             <option value="notes">Notes</option>
+                            <option value="checklist">Checklist</option>
                         </select>
                     </div>
                     
@@ -393,6 +437,7 @@
                 this.GLOBAL_API_KEY = 'global_jsonbin_api_key'; 
                 this.sortColumn = 'name';
                 this.sortDirection = 'asc';
+                this.viewMode = 'edit'; // 'edit' or 'view'
                 this.init();
             }
 
@@ -490,9 +535,11 @@
                 document.getElementById('app-container').style.display = 'block';
 
                 this.db = { schema: [], items: [] };
+                this.viewMode = localStorage.getItem(this.getStorageKey('view_mode')) || 'edit';
                 this.updateSyncButton('idle');
                 this.bindEvents();
                 this.loadLocalData(); 
+                this.applyMode();
                 this.renderFilters(); 
                 this.renderTable();
                 
@@ -518,6 +565,10 @@
                 this.eventsBound = true;
 
                 document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
+                document.getElementById('mode-toggle').addEventListener('click', () => this.toggleMode());
+                document.getElementById('detail-back-btn').addEventListener('click', () => this.showView('list'));
+                document.getElementById('detail-edit-btn').addEventListener('click', () => this.editItem(this.currentDetailId));
+                document.getElementById('edit-view-btn').addEventListener('click', () => this.viewItem(this.currentItemId));
                 document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
                 document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
                 document.getElementById('refresh-btn').addEventListener('click', () => this.toggleAutoSync()); 
@@ -727,10 +778,14 @@
                     const data = await res.json();
                     const record = data.record || {};
 
-                    // RECOVER URL IF PRESENT
-                    if (record.baseUrl !== undefined) {
-                        localStorage.setItem(this.getStorageKey('base_url'), record.baseUrl);
+                    // RECOVER METADATA
+                    const meta = record.meta || {};
+                    const baseUrl = meta.baseUrl !== undefined ? meta.baseUrl : record.baseUrl;
+                    if (baseUrl !== undefined) {
+                        localStorage.setItem(this.getStorageKey('base_url'), baseUrl);
                     }
+                    if (meta.viewMode) { this.viewMode = meta.viewMode; this.applyMode(); }
+                    if (meta.lastBackup) { this.lastBackup = meta.lastBackup; }
 
                     if (Array.isArray(record)) {
                         this.db.items = record.filter(i => i && i.id && i.name);
@@ -754,6 +809,20 @@
                 }
             }
 
+            triggerDailyBackup(payload) {
+                const today = new Date().toISOString().slice(0, 10);
+                if (payload.meta.lastBackup === today) return;
+                const schemaName = (this.context || 'backup').toLowerCase().replace(/[^a-z0-9]/g, '-');
+                const filename = `${schemaName}-${today}-backup.json`;
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(a.href);
+                payload.meta.lastBackup = today;
+            }
+
             async syncToCloud() {
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
@@ -761,12 +830,18 @@
 
                 this.updateSyncButton('loading');
 
-                // ADD BASE URL TO PAYLOAD
                 const payload = {
+                    meta: {
+                        baseUrl: localStorage.getItem(this.getStorageKey('base_url')) || '',
+                        viewMode: this.viewMode,
+                        lastBackup: this.lastBackup || ''
+                    },
                     schema: this.db.schema,
-                    items: this.db.items,
-                    baseUrl: localStorage.getItem(this.getStorageKey('base_url')) || ''
+                    items: this.db.items
                 };
+
+                this.triggerDailyBackup(payload);
+                this.lastBackup = payload.meta.lastBackup;
 
                 try {
                     await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
@@ -785,7 +860,7 @@
                 this.isProcessing = true;
                 this.updateSyncButton('loading');
 
-                const payload = { schema: [], items: [] };
+                const payload = { meta: {}, schema: [], items: [] };
 
                 try {
                     const res = await fetch('https://api.jsonbin.io/v3/b', {
@@ -1336,6 +1411,7 @@
                 tableContainer.style.display = 'block';
                 emptyState.style.display = 'none';
 
+                const isViewMode = this.viewMode === 'view';
                 const visibleFields = this.db.schema.filter(f => f.showInList && f.key.toLowerCase() !== 'name');
                 const getArrow = (col) => this.sortColumn === col ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
 
@@ -1352,12 +1428,13 @@
                 thead.innerHTML = headerHTML;
 
                 tbody.innerHTML = displayItems.map(item => {
-                    let rowHTML = `<tr onclick="app.editItem('${item.id}')">`;
+                    let rowHTML = isViewMode
+                        ? `<tr onclick="app.viewItem('${item.id}')">` 
+                        : `<tr onclick="app.editItem('${item.id}')">`;
                     
                     // New Action Column Cell if URL exists
                     if (baseUrl) {
                         const fullUrl = baseUrl + encodeURIComponent(item.name);
-                        // event.stopPropagation prevents the row click (Edit) from firing when clicking the link
                         rowHTML += `<td style="text-align: center;"><a href="${fullUrl}" target="_blank" class="action-icon-link" onclick="event.stopPropagation()">🔗</a></td>`;
                     }
 
@@ -1370,6 +1447,7 @@
 
             openEditor() {
                 this.currentItemId = null;
+                document.getElementById('edit-view-btn').style.display = 'none';
                 document.getElementById('form-title').textContent = 'New Record';
                 document.getElementById('field-name').value = '';
                 document.getElementById('delete-btn').style.display = 'none';
@@ -1381,6 +1459,7 @@
                 const item = this.db.items.find(i => i.id === id);
                 if (!item) return;
                 this.currentItemId = id;
+                document.getElementById('edit-view-btn').style.display = id ? '' : 'none';
                 document.getElementById('form-title').textContent = 'Edit Record';
                 document.getElementById('field-name').value = item.name;
                 document.getElementById('delete-btn').style.display = 'block';
@@ -1415,13 +1494,14 @@
                             select.appendChild(option);
                         });
                         containerDiv.appendChild(select);
-                    } else if (field.type === 'notes') {
+                    } else if (field.type === 'notes' || field.type === 'checklist') {
                         const textarea = document.createElement('textarea');
                         textarea.className = 'form-input';
                         textarea.name = `custom_${field.key}`;
                         textarea.dataset.key = field.key;
                         textarea.value = itemValues[field.key] || '';
                         textarea.rows = 4;
+                        if (field.type === 'checklist') textarea.placeholder = 'One item per line';
                         containerDiv.appendChild(textarea);
                     } else {
                         const input = document.createElement('input');
@@ -1434,12 +1514,12 @@
                         containerDiv.appendChild(input);
                     }
                     container.appendChild(containerDiv);
-                });
+                });x
             }
 
             saveItem(e) {
                 e.preventDefault();
-                const name = document.getElementById('field-name').value;
+                const name = document.getElementById('field-name').value.trim().toUpperCase();
                 const dynamicInputs = document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select');
                 
                 let finalItem = {
@@ -1463,7 +1543,12 @@
 
                 this.saveLocalData();
                 this.showToast('Saved locally');
-                this.showView('list');
+                if (this.saveAndClose) {
+                    this.showView('list');
+                } else {
+                    this.currentItemId = finalItem.id;
+                    document.getElementById('edit-view-btn').style.display = '';
+                }
                 
                 this.renderFilters(); 
 
@@ -1518,6 +1603,89 @@
                 this.checkSyncReady();
                 // Re-render table to show/hide the link column
                 this.renderTable(document.getElementById('search-input').value);
+            }
+
+            toggleMode() {
+                this.viewMode = this.viewMode === 'edit' ? 'view' : 'edit';
+                this.applyMode();
+                this.renderTable(document.getElementById('search-input').value);
+                localStorage.setItem(this.getStorageKey('view_mode'), this.viewMode);
+                if (this.autoSyncEnabled) setTimeout(() => this.syncToCloud(), 100);
+            }
+
+            applyMode() {
+                const label = document.getElementById('mode-label');
+                const track = document.getElementById('mode-track');
+                const isView = this.viewMode === 'view';
+                label.textContent = isView ? 'VIEW' : 'EDIT';
+                track.classList.toggle('view-mode', isView);
+                // Hide edit-only buttons in view mode
+                document.getElementById('add-btn').style.display = isView ? 'none' : '';
+                document.getElementById('delete-all-btn').style.display = isView ? 'none' : '';
+                document.getElementById('import-btn').style.display = isView ? 'none' : '';
+            }
+
+            viewItem(id) {
+                const item = this.db.items.find(i => i.id === id);
+                if (!item) return;
+                document.getElementById('detail-title').textContent = item.name || 'View Record';
+                const container = document.getElementById('detail-fields-container');
+                container.innerHTML = '';
+
+                const addField = (label, value) => {
+                    const row = document.createElement('div');
+                    row.className = 'detail-row';
+                    const key = document.createElement('span');
+                    key.className = 'detail-row-key';
+                    key.textContent = label + ':';
+                    const val = document.createElement('span');
+                    val.className = value ? 'detail-row-value' : 'detail-row-value empty';
+                    val.textContent = value || '-';
+                    row.appendChild(key);
+                    row.appendChild(val);
+                    container.appendChild(row);
+                };
+
+                const addChecklist = (label, value) => {
+                    const row = document.createElement('div');
+                    row.className = 'detail-row detail-row-checklist';
+                    const key = document.createElement('span');
+                    key.className = 'detail-row-key';
+                    key.textContent = label + ':';
+                    const list = document.createElement('div');
+                    list.className = 'detail-checklist';
+                    const lines = (value || '').split('\n').filter(l => l.trim());
+                    if (lines.length === 0) {
+                        list.innerHTML = '<span class="detail-row-value empty">-</span>';
+                    } else {
+                        lines.forEach(line => {
+                            const item = document.createElement('label');
+                            item.className = 'detail-checklist-item';
+                            const cb = document.createElement('input');
+                            cb.type = 'checkbox';
+                            cb.className = 'detail-checklist-cb';
+                            const txt = document.createElement('span');
+                            txt.textContent = line.trim();
+                            item.appendChild(cb);
+                            item.appendChild(txt);
+                            list.appendChild(item);
+                        });
+                    }
+                    row.appendChild(key);
+                    row.appendChild(list);
+                    container.appendChild(row);
+                };
+
+                this.currentDetailId = id;
+                addField('NAME', item.name);
+                this.db.schema.forEach(field => {
+                    if (field.type === 'checklist') {
+                        addChecklist(field.key, item[field.key] || '');
+                    } else {
+                        addField(field.key, item[field.key] || '');
+                    }
+                });
+                this.showView('detail');
             }
 
             showToast(msg) {

@@ -502,7 +502,7 @@
             background: var(--surface); padding: 40px 36px;
             border-radius: 8px; box-shadow: var(--shadow-md);
             border: 1px solid var(--border);
-            width: 90%; max-width: 390px; text-align: center;
+            width: 90%; max-width: 440px; text-align: center;
         }
         .startup-card h2 {
             font-family: 'Barlow Condensed', "Arial Narrow", sans-serif;
@@ -610,6 +610,8 @@
             <div class="startup-input-row">
                 <input type="text" id="startup-input" class="form-input" placeholder="CONTEXT NAME">
                 <button id="startup-btn" class="btn btn-primary">Load</button>
+                <button id="startup-create-btn" class="btn btn-primary">Create</button>
+                <button id="clear-context-btn" class="btn btn-danger-solid">Clear</button>
             </div>
             <div id="recent-area" class="recent-area" style="display: none;">
                 <div id="recent-list" class="recent-list"></div>
@@ -759,8 +761,7 @@
                     <label class="form-label">Sync Mode</label>
                     <select id="conf-sync-mode" class="form-select">
                         <option value="disabled">Disabled</option>
-                        <option value="modification">On Modification</option>
-                        <option value="time">Every 15 minutes</option>
+                        <option value="modification">Enabled (On Modification)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -852,6 +853,10 @@
 
             <div class="modal-tab-panel" id="tab-backup" style="display:none;">
                 <div class="form-group" style="flex-direction: column; align-items: flex-start;">
+                    <label class="form-label" style="margin-bottom: 8px;">Last Backup</label>
+                    <div id="conf-last-backup" style="font-size: 14px; font-weight: 600; color: var(--text);">Never</div>
+                </div>
+                <div class="form-group" style="flex-direction: column; align-items: flex-start;">
                     <label class="form-label" style="margin-bottom: 8px;">Data Management</label>
                     <div style="display:flex; gap: 8px;">
                         <button class="btn" id="export-btn" title="Download CSV">Export</button>
@@ -870,15 +875,15 @@
     <div class="overlay" id="token-modal">
         <div class="modal">
             <div class="modal-header">
-                <h3>Access Shared Data</h3>
+                <h3 id="token-modal-title">Access Shared Data</h3>
             </div>
             <div class="modal-tab-panel">
-                <p style="font-size: 13px; margin-bottom: 16px; color: var(--text-light);">
+                <p id="token-modal-desc" style="font-size: 13px; margin-bottom: 16px; color: var(--text-light);">
                     You are accessing context: <b><span id="token-modal-context"></span></b>.<br>
                     This database is protected. Please enter the JSONBin API Key.
                 </p>
                 <div class="form-group">
-                    <label class="form-label">API Token / Key</label>
+                    <label class="form-label" id="token-modal-label">API Token / Key</label>
                     <input type="password" class="form-input" id="quick-api-key" placeholder="$2a$10...">
                 </div>
             </div>
@@ -918,7 +923,6 @@
                 this.isProcessing = false;
                 this.eventsBound = false;
                 this.syncMode = 'disabled';
-                this.timeSyncInterval = null;
                 this.RECENT_KEY = 'global_recent_contexts';
                 this.GLOBAL_API_KEY = 'global_jsonbin_api_key';
                 this.sortColumn = 'name';
@@ -928,8 +932,14 @@
                 this.searchChatMode = 'search';
                 this.openRecords = [];
                 this.activeRecordId = null;
-                this.hasUnsyncedChanges = false;
+                this.tokenModalMode = 'apikey';
+                this.syncDebounceTimer = null;
                 this.init();
+            }
+
+            debounceSync() {
+                clearTimeout(this.syncDebounceTimer);
+                this.syncDebounceTimer = setTimeout(() => this.mergeAndSync(), 1000);
             }
 
             init() {
@@ -945,7 +955,7 @@
                         newUrl.searchParams.delete('bin-id');
                         window.history.replaceState({}, '', newUrl);
                     }
-                    this.loadContext(urlContext);
+                    this.loadContext(urlContext, 'load');
                 } else {
                     this.showStartupScreen();
                 }
@@ -956,6 +966,8 @@
                 const container = document.getElementById('app-container');
                 const input = document.getElementById('startup-input');
                 const btn = document.getElementById('startup-btn');
+                const createBtn = document.getElementById('startup-create-btn');
+                const clearBtn = document.getElementById('clear-context-btn');
 
                 document.title = 'DATA';
                 container.style.display = 'none';
@@ -966,10 +978,49 @@
 
                 const handleStart = () => {
                     const val = input.value.trim().toUpperCase();
-                    if (val) this.switchUrlAndLoad(val);
+                    if (val) this.switchUrlAndLoad(val, 'load');
                 };
+                const handleCreate = () => {
+                    const val = input.value.trim().toUpperCase();
+                    if (val) this.switchUrlAndLoad(val, 'create');
+                };
+
                 btn.onclick = handleStart;
+                createBtn.onclick = handleCreate;
                 input.onkeypress = (e) => { if (e.key === 'Enter') handleStart(); };
+
+                clearBtn.onclick = () => {
+                    const val = input.value.trim().toUpperCase();
+                    if (val) this.clearSpecificContext(val);
+                };
+            }
+
+            clearSpecificContext(contextName) {
+                const prefix = `ctx_${contextName}_`;
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(prefix)) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+
+                let recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
+                recents = recents.filter(c => c !== contextName);
+                localStorage.setItem(this.RECENT_KEY, JSON.stringify(recents));
+
+                document.getElementById('startup-input').value = '';
+                this.renderRecents();
+
+                const newUrl = new URL(window.location);
+                if (newUrl.searchParams.get('context') === contextName) {
+                    newUrl.searchParams.delete('context');
+                    window.history.replaceState({}, '', newUrl);
+                    this.context = null;
+                }
+
+                this.showToast('Context cleared');
             }
 
             renderRecents() {
@@ -978,7 +1029,7 @@
                 const recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
                 if (recents.length === 0) { recentArea.style.display = 'none'; return; }
                 recentArea.style.display = 'block';
-                const htmlButtons = recents.map(ctx => `<button class="btn recent-btn" onclick="app.switchUrlAndLoad('${ctx}')">${ctx}</button>`).join('');
+                const htmlButtons = recents.map(ctx => `<button class="btn recent-btn" onclick="app.switchUrlAndLoad('${ctx}', 'load')">${ctx}</button>`).join('');
                 const clearHtml = `<button class="btn recent-btn recent-btn-clear" onclick="app.clearRecents()">Clear History</button>`;
                 recentList.innerHTML = htmlButtons + clearHtml;
             }
@@ -993,35 +1044,32 @@
                 localStorage.setItem(this.RECENT_KEY, JSON.stringify(recents));
             }
 
-            switchUrlAndLoad(val) {
+            switchUrlAndLoad(val, action = 'load') {
                 const screen = document.getElementById('startup-screen');
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.set('context', val);
                 window.history.pushState({}, '', newUrl);
                 screen.style.display = 'none';
-                this.loadContext(val);
+                this.loadContext(val, action);
             }
 
-            loadContext(contextName) {
+            loadContext(contextName, action = 'load') {
                 this.context = contextName;
                 this.addToRecents(this.context);
                 this.activeFilters = {};
                 document.title = this.context;
                 document.getElementById('app-title').textContent = this.context;
                 document.getElementById('app-container').style.display = 'block';
-                this.db = { schema: [], items: [] };
+                this.db = { schema: [], items: [], schemaModified: new Date().toISOString() };
 
-                // Cerrar siempre los ítems abiertos al cambiar de contexto
                 this.openRecords = [];
                 this.activeRecordId = null;
-                this.saveUIState();
                 this.renderRecordTabs();
 
                 const defMode = localStorage.getItem(this.getStorageKey('default_mode')) || 'edit';
                 const defTab = localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis';
                 this.viewMode = localStorage.getItem(this.getStorageKey('view_mode')) || defMode;
                 this.syncMode = localStorage.getItem(this.getStorageKey('sync_mode')) || 'modification';
-                this.setupTimeSync();
                 
                 this.updateSyncButton('idle');
                 this.bindEvents();
@@ -1053,17 +1101,10 @@
                 if (!globalKey) {
                     if (hasBinId) { this.openTokenModal(); }
                     else { this.openConfig(); this.showToast('Please configure your Global API Key'); }
-                } else { this.checkSyncReady(); }
+                } else { this.checkSyncReady(action); }
             }
 
             getStorageKey(key) { return `ctx_${this.context}_${key}`; }
-
-            saveUIState() {
-                localStorage.setItem(this.getStorageKey('open_records'), JSON.stringify({
-                    openRecords: this.openRecords,
-                    activeRecordId: this.activeRecordId
-                }));
-            }
 
             bindEvents() {
                 if (this.eventsBound) return;
@@ -1071,7 +1112,6 @@
 
                 document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
 
-                // View/Edit mode pill toggle
                 document.getElementById('toggle-edit-btn').addEventListener('click', () => {
                     if (this.viewMode !== 'edit') this.toggleMode();
                 });
@@ -1095,12 +1135,10 @@
                 document.getElementById('schema-cancel-edit-btn').addEventListener('click', () => this.resetSchemaForm());
                 document.getElementById('schema-to-selector-btn').addEventListener('click', () => this.convertToSelector());
 
-                // Copy modal
                 document.getElementById('copy-clipboard-btn').addEventListener('click', () => this.openCopyModal());
                 document.getElementById('cancel-copy').addEventListener('click', () => document.getElementById('copy-modal').classList.remove('show'));
                 document.getElementById('confirm-copy').addEventListener('click', () => this.executeCopy());
 
-                // List view tabs
                 document.querySelectorAll('.list-tab[data-list-tab="kpis"], .list-tab[data-list-tab="data"]').forEach(tab => {
                     tab.addEventListener('click', () => this.switchListTab(tab.dataset.listTab));
                 });
@@ -1149,21 +1187,50 @@
             }
 
             openTokenModal() {
+                this.tokenModalMode = 'apikey';
                 const modal = document.getElementById('token-modal');
-                document.getElementById('token-modal-context').textContent = this.context;
-                document.getElementById('quick-api-key').value = '';
+                document.getElementById('token-modal-title').textContent = 'Access Shared Data';
+                document.getElementById('token-modal-desc').innerHTML = `You are accessing context: <b><span id="token-modal-context">${this.context}</span></b>.<br>This database is protected. Please enter the JSONBin API Key.`;
+                document.getElementById('token-modal-label').textContent = 'API Token / Key';
+                const input = document.getElementById('quick-api-key');
+                input.type = 'password';
+                input.value = '';
+                input.placeholder = '$2a$10...';
                 modal.classList.add('show');
-                document.getElementById('quick-api-key').focus();
+                input.focus();
+            }
+
+            openBinModal() {
+                this.tokenModalMode = 'binid';
+                const modal = document.getElementById('token-modal');
+                document.getElementById('token-modal-title').textContent = 'Connect to existing';
+                document.getElementById('token-modal-desc').textContent = 'Enter the Bin ID of the remote context you want to connect to:';
+                document.getElementById('token-modal-label').textContent = 'Bin ID';
+                const input = document.getElementById('quick-api-key');
+                input.type = 'text';
+                input.value = '';
+                input.placeholder = '';
+                modal.classList.add('show');
+                input.focus();
             }
 
             saveQuickToken() {
-                const key = document.getElementById('quick-api-key').value.trim();
-                if (key) {
-                    localStorage.setItem(this.GLOBAL_API_KEY, key);
-                    document.getElementById('token-modal').classList.remove('show');
-                    this.showToast('Key saved');
-                    this.checkSyncReady();
-                } else { this.showToast('Please enter a key'); }
+                const val = document.getElementById('quick-api-key').value.trim();
+                if (val) {
+                    if (this.tokenModalMode === 'binid') {
+                        localStorage.setItem(this.getStorageKey('bin_id'), val);
+                        document.getElementById('token-modal').classList.remove('show');
+                        this.showToast('Bin ID saved');
+                        this.fetchCloudData();
+                    } else {
+                        localStorage.setItem(this.GLOBAL_API_KEY, val);
+                        document.getElementById('token-modal').classList.remove('show');
+                        this.showToast('Key saved');
+                        this.checkSyncReady('load');
+                    }
+                } else { 
+                    this.showToast('Please enter a value'); 
+                }
             }
 
             openCopyModal() {
@@ -1206,7 +1273,7 @@
                 const filteredItems = this.db.items.filter(item => {
                     const matchesSearch = !item || !item.name ? false : Object.values(item).some(val => String(val).toLowerCase().includes(filterText));
                     const matchesFilters = Object.entries(this.activeFilters).every(([key, val]) => this.checkFilterMatch(item[key], val));
-                    return item && item.id && item.name && matchesSearch && matchesFilters;
+                    return item && item.id && item.name && !item.deleted && matchesSearch && matchesFilters;
                 });
                 filteredItems.sort((a, b) => {
                     let valA = a[this.sortColumn] || '', valB = b[this.sortColumn] || '';
@@ -1230,13 +1297,13 @@
 
             updateSyncButton(state) {
                 const header = document.querySelector('.app-header');
-                const isSyncDisabled = (this.syncMode !== 'modification' && this.syncMode !== 'time');
+                const isSyncDisabled = (this.syncMode !== 'modification');
 
                 const setIdleColor = () => {
-                    if (this.syncMode === 'time' && this.hasUnsyncedChanges) {
-                        header.style.background = 'darkblue';
-                    } else {
+                    if (isSyncDisabled) {
                         header.style.background = 'black';
+                    } else {
+                        header.style.background = 'darkgreen';
                     }
                 };
 
@@ -1244,12 +1311,9 @@
                     header.style.background = 'darkorange';
                 } else if (state === 'error') {
                     header.style.background = 'darkred';
-                    setTimeout(setIdleColor, 2000);
                 } else if (state === 'success') {
                     header.style.background = isSyncDisabled ? 'black' : 'darkgreen';
                     setTimeout(setIdleColor, 2000);
-                } else if (state === 'unsynced') {
-                    setIdleColor();
                 } else {
                     setIdleColor();
                 }
@@ -1266,7 +1330,9 @@
             loadLocalData() {
                 const sRaw = localStorage.getItem(this.getStorageKey('schema'));
                 const iRaw = localStorage.getItem(this.getStorageKey('items'));
+                const smRaw = localStorage.getItem(this.getStorageKey('schemaModified'));
                 this.db.schema = sRaw ? JSON.parse(sRaw) : [];
+                this.db.schemaModified = smRaw || new Date().toISOString();
                 this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
                 const loadedItems = iRaw ? JSON.parse(iRaw) : [];
                 this.db.items = loadedItems.filter(i => i && i.id && i.name);
@@ -1276,10 +1342,7 @@
             saveLocalData() {
                 localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
                 localStorage.setItem(this.getStorageKey('items'), JSON.stringify(this.db.items));
-                if (this.syncMode === 'time') {
-                    this.hasUnsyncedChanges = true;
-                    this.updateSyncButton('unsynced');
-                }
+                localStorage.setItem(this.getStorageKey('schemaModified'), this.db.schemaModified || new Date().toISOString());
             }
 
             async fetchCloudData() {
@@ -1303,8 +1366,9 @@
                     if (meta.syncMode) {
                         this.syncMode = meta.syncMode;
                         localStorage.setItem(this.getStorageKey('sync_mode'), this.syncMode);
-                        this.setupTimeSync();
                     }
+                    if (meta.schemaModified) this.db.schemaModified = meta.schemaModified;
+                    
                     if (meta.lastBackup) this.lastBackup = meta.lastBackup;
                     if (Array.isArray(record)) { this.db.items = record.filter(i => i && i.id && i.name); }
                     else {
@@ -1312,18 +1376,11 @@
                         this.db.items = (record.items || []).filter(i => i && i.id && i.name);
                     }
                     this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
-                    this.saveLocalData(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value);
+                    this.saveLocalData(); 
+                    this.renderFilters(); 
+                    this.renderTable(document.getElementById('search-input').value);
                     this.updateSyncButton('success');
                 } catch (e) { this.updateSyncButton('error'); this.showToast('Auth error'); }
-            }
-
-            setupTimeSync() {
-                if (this.timeSyncInterval) clearInterval(this.timeSyncInterval);
-                if (this.syncMode === 'time') {
-                    this.timeSyncInterval = setInterval(() => {
-                        this.syncToCloud();
-                    }, 15 * 60 * 1000);
-                }
             }
 
             triggerDailyBackup(payload) {
@@ -1335,10 +1392,59 @@
                 payload.meta.lastBackup = today;
             }
 
-            async syncToCloud() {
+            async mergeAndSync() {
+                if (this.syncMode === 'disabled') {
+                    this.saveLocalData();
+                    return;
+                }
+
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY), binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
+
                 this.updateSyncButton('loading');
+
+                let cloudData;
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Access-Key': apiKey } });
+                    if (!res.ok) throw new Error('Fetch failed');
+                    cloudData = await res.json();
+                } catch (e) {
+                    this.updateSyncButton('error');
+                    return;
+                }
+
+                const cloudRecord = cloudData.record || {};
+                const cloudItems = Array.isArray(cloudRecord) ? cloudRecord : (cloudRecord.items || []);
+                const cloudSchema = cloudRecord.schema || [];
+                const cloudSchemaModified = (cloudRecord.meta && cloudRecord.meta.schemaModified) || '';
+
+                const mergedItemsMap = new Map();
+                cloudItems.forEach(ci => mergedItemsMap.set(ci.id, ci));
+
+                this.db.items.forEach(li => {
+                    const ci = mergedItemsMap.get(li.id);
+                    if (!ci) {
+                        mergedItemsMap.set(li.id, li);
+                    } else {
+                        const lDate = new Date(li.lastModified || 0).getTime();
+                        const cDate = new Date(ci.lastModified || 0).getTime();
+                        if (lDate > cDate) {
+                            mergedItemsMap.set(li.id, li);
+                        }
+                    }
+                });
+                const mergedItems = Array.from(mergedItemsMap.values());
+
+                let mergedSchema = this.db.schema;
+                let mergedSchemaModified = this.db.schemaModified || new Date().toISOString();
+                const lSchemaTime = new Date(this.db.schemaModified || 0).getTime();
+                const cSchemaTime = new Date(cloudSchemaModified || 0).getTime();
+
+                if (cSchemaTime > lSchemaTime) {
+                    mergedSchema = cloudSchema;
+                    mergedSchemaModified = cloudSchemaModified;
+                }
+
                 const payload = {
                     meta: { 
                         baseUrl: localStorage.getItem(this.getStorageKey('base_url')) || '', 
@@ -1349,18 +1455,31 @@
                         geminiModel: localStorage.getItem(this.getStorageKey('gemini_model')) || '',
                         aiGlobal: localStorage.getItem(this.getStorageKey('ai_global')) || '',
                         aiEdit: localStorage.getItem(this.getStorageKey('ai_edit')) || '',
-                        syncMode: this.syncMode
+                        syncMode: this.syncMode,
+                        schemaModified: mergedSchemaModified
                     },
-                    schema: this.db.schema, items: this.db.items
+                    schema: mergedSchema, items: mergedItems
                 };
-                this.triggerDailyBackup(payload); this.lastBackup = payload.meta.lastBackup;
+                
+                this.triggerDailyBackup(payload); 
+                this.lastBackup = payload.meta.lastBackup;
+                
                 try {
                     await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                         method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Access-Key': apiKey }, body: JSON.stringify(payload)
                     });
-                    this.hasUnsyncedChanges = false;
+                    
+                    this.db.items = mergedItems;
+                    this.db.schema = mergedSchema;
+                    this.db.schemaModified = mergedSchemaModified;
+                    this.saveLocalData();
+                    
                     this.updateSyncButton('success');
-                } catch (e) { this.updateSyncButton('error'); }
+                    this.renderFilters(); 
+                    this.renderTable(document.getElementById('search-input').value);
+                } catch (e) { 
+                    this.updateSyncButton('error'); 
+                }
             }
 
             async createBin(apiKey) {
@@ -1377,10 +1496,18 @@
                 } catch (e) { this.updateSyncButton('error'); }
             }
 
-            checkSyncReady() {
+            checkSyncReady(action = 'load') {
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY), binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey) return;
-                if (!binId) { this.createBin(apiKey); } else { this.fetchCloudData(); }
+                if (!binId) { 
+                    if (action === 'create') {
+                        this.createBin(apiKey);
+                    } else {
+                        this.openBinModal();
+                    }
+                } else { 
+                    this.fetchCloudData(); 
+                }
             }
 
             shareConfig() {
@@ -1480,7 +1607,7 @@
                         e.preventDefault(); const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
                         const item = this.db.schema.splice(fromIdx, 1)[0]; this.db.schema.splice(index, 0, item);
                         this.saveSchema(); this.renderSchemaList(); this.renderTable(document.getElementById('search-input').value);
-                        if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 500);
+                        if (this.syncMode === 'modification') this.debounceSync();
                     });
                     
                     let meta = field.type.toUpperCase();
@@ -1568,22 +1695,20 @@
                     if (this.editingFieldKey !== key) { this.db.items.forEach(i => { if (i[this.editingFieldKey] !== undefined) { i[key] = i[this.editingFieldKey]; delete i[this.editingFieldKey]; } }); this.saveLocalData(); }
                 } else { this.db.schema.push(fieldDef); }
                 this.saveSchema(); this.renderSchemaList(); this.resetSchemaForm(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value);
-                if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 100);
+                if (this.syncMode === 'modification') this.debounceSync();
             }
 
-            removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncMode === 'modification') this.syncToCloud(); } }
+            removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncMode === 'modification') this.mergeAndSync(); } }
 
             saveSchema() { 
+                this.db.schemaModified = new Date().toISOString();
+                localStorage.setItem(this.getStorageKey('schemaModified'), this.db.schemaModified);
                 localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema)); 
                 this.renderTable(document.getElementById('search-input').value); 
-                if (this.syncMode === 'time') {
-                    this.hasUnsyncedChanges = true;
-                    this.updateSyncButton('unsynced');
-                }
             }
 
             updateKPIs(dataSet) {
-                const data = (dataSet || this.db.items).filter(i => i && i.id && i.name);
+                const data = (dataSet || this.db.items).filter(i => i && i.id && i.name && !i.deleted);
                 const metricsContainer = document.getElementById('kpi-metrics-container');
                 const distContainer = document.getElementById('kpi-dist-container');
                 
@@ -1625,7 +1750,7 @@
 
             exportCSV() {
                 const headers = ['name', ...this.db.schema.map(f => f.key)], rows = [headers.map(h => `"${h}"`).join(';')];
-                this.db.items.forEach(i => { if (i.id && i.name) rows.push(headers.map(h => `"${String(i[h] || '').replace(/"/g, '""')}"`).join(';')); });
+                this.db.items.forEach(i => { if (i.id && i.name && !i.deleted) rows.push(headers.map(h => `"${String(i[h] || '').replace(/"/g, '""')}"`).join(';')); });
                 const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${this.context}_data.csv`; a.click();
             }
@@ -1659,7 +1784,7 @@
                     this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
                     if(newFields) this.saveSchema();
                     this.saveLocalData(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); this.showToast(`Imported ${importedCount}`);
-                    if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 500);
+                    if (this.syncMode === 'modification') this.debounceSync();
                 };
                 reader.readAsText(event.target.files[0]);
             }
@@ -1690,7 +1815,6 @@
                 this.switchListTab('record');
                 this.renderRecordTabs();
                 document.querySelector('.header-actions').style.display = 'flex';
-                this.saveUIState();
             }
 
             renderRecordTabs() {
@@ -1702,7 +1826,7 @@
                     btn.dataset.listTab = 'record';
                     btn.innerHTML = `${r.name} <span class="record-tab-x">✕</span>`;
                     btn.addEventListener('click', () => {
-                        if (r.id === '__new__') { this.activeRecordId = r.id; this.renderRecordTabs(); document.getElementById('record-tab-edit-panel').style.display = ''; document.getElementById('record-tab-detail-panel').style.display = 'none'; this.switchListTab('record'); this.saveUIState(); }
+                        if (r.id === '__new__') { this.activeRecordId = r.id; this.renderRecordTabs(); document.getElementById('record-tab-edit-panel').style.display = ''; document.getElementById('record-tab-detail-panel').style.display = 'none'; this.switchListTab('record'); }
                         else if (this.viewMode === 'edit') { this.editItem(r.id); }
                         else { this.viewItem(r.id); }
                     });
@@ -1712,7 +1836,7 @@
             }
 
             closeRecord(id) {
-                if (!id) { this.renderRecordTabs(); this.switchListTab('data'); document.querySelector('.header-actions').style.display = 'flex'; this.saveUIState(); return; }
+                if (!id) { this.renderRecordTabs(); this.switchListTab('data'); document.querySelector('.header-actions').style.display = 'flex'; return; }
                 this.openRecords = this.openRecords.filter(r => r.id !== id);
                 if (this.activeRecordId === id) {
                     this.activeRecordId = null;
@@ -1726,7 +1850,6 @@
                     }
                 } else { this.renderRecordTabs(); }
                 document.querySelector('.header-actions').style.display = 'flex';
-                this.saveUIState();
             }
 
             handleSort(key) {
@@ -1741,7 +1864,7 @@
                 let items = this.db.items.filter(i => {
                     const search = !i?.name ? false : Object.values(i).some(v => String(v).toLowerCase().includes(filterText.toLowerCase()));
                     const filters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
-                    return i && i.id && i.name && search && filters;
+                    return i && i.id && i.name && !i.deleted && search && filters;
                 });
                 items.sort((a, b) => {
                     let vA = a[this.sortColumn] || '', vB = b[this.sortColumn] || '';
@@ -1792,12 +1915,27 @@
                     if (recIdx !== -1) { this.openRecords[recIdx] = { id: item.id, name: item.name }; }
                     this.activeRecordId = item.id;
                     this.renderRecordTabs();
-                    this.saveUIState();
                 }
-                this.renderFilters(); if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 100);
+                this.renderFilters(); 
+                this.renderTable(document.getElementById('search-input').value);
+                if (this.syncMode === 'modification') this.debounceSync();
             }
 
-            deleteItem() { if (this.currentItemId && confirm('Delete?')) { this.db.items = this.db.items.filter(i => i.id !== this.currentItemId); this.saveLocalData(); this.showToast('Deleted'); this.closeRecord(this.currentItemId); this.renderFilters(); if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 100); } }
+            deleteItem() { 
+                if (this.currentItemId && confirm('Delete?')) { 
+                    const itemIndex = this.db.items.findIndex(i => i.id === this.currentItemId);
+                    if (itemIndex > -1) {
+                        this.db.items[itemIndex].deleted = true;
+                        this.db.items[itemIndex].lastModified = new Date().toISOString();
+                        this.saveLocalData(); 
+                        this.showToast('Deleted'); 
+                        this.closeRecord(this.currentItemId); 
+                        this.renderFilters(); 
+                        this.renderTable(document.getElementById('search-input').value);
+                        if (this.syncMode === 'modification') this.debounceSync(); 
+                    }
+                } 
+            }
 
             async openConfig() {
                 const modal = document.getElementById('config-modal'); document.getElementById('modal-context').textContent = this.context;
@@ -1811,6 +1949,8 @@
                 document.getElementById('conf-ai-ctx-edit').value = localStorage.getItem(this.getStorageKey('ai_edit')) || '';
                 document.getElementById('conf-ai-ctx-list').value = localStorage.getItem(this.getStorageKey('ai_list')) || '';
                 document.getElementById('conf-sync-mode').value = localStorage.getItem(this.getStorageKey('sync_mode')) || 'modification';
+                document.getElementById('conf-last-backup').textContent = this.lastBackup || 'Never';
+
                 this.renderSchemaList(); modal.classList.add('show');
 
                 // Load Gemini Models
@@ -1852,16 +1992,15 @@
                 
                 this.syncMode = document.getElementById('conf-sync-mode').value;
                 localStorage.setItem(this.getStorageKey('sync_mode'), this.syncMode);
-                this.setupTimeSync();
 
                 this.updateSyncButton('idle'); 
 
                 document.getElementById('config-modal').classList.remove('show'); this.showToast('Config Saved');
                 
                 if (binId !== oldBinId || !binId) {
-                    this.checkSyncReady();
+                    this.checkSyncReady('load');
                 } else {
-                    this.syncToCloud();
+                    this.mergeAndSync();
                 }
                 
                 this.renderTable(document.getElementById('search-input').value);
@@ -1895,11 +2034,11 @@
                     const isChecked = text.startsWith('-');
                     const cleanText = text.replace(/^-+\s*/, '');
                     const newCheckedState = !isChecked;
-                    
+                    item.lastModified = new Date().toISOString();
                     lines[index] = (newCheckedState ? '- ' : '') + cleanText;
                     item[key] = lines.join('\n');
                     this.saveLocalData();
-                    if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 100);
+                    if (this.syncMode === 'modification') this.debounceSync();
                 }
             }
 
@@ -1912,9 +2051,10 @@
                     const cleanText = text.replace(/^-+\s*/, '');
                     return isChecked ? '- ' + cleanText : cleanText;
                 });
+                item.lastModified = new Date().toISOString();
                 item[key] = newLines.join('\n');
                 this.saveLocalData();
-                if (this.syncMode === 'modification') setTimeout(() => this.syncToCloud(), 100);
+                if (this.syncMode === 'modification') this.debounceSync();
                 this.viewItem(id); 
             }
 
@@ -1944,7 +2084,7 @@
                         container.appendChild(r);
                     } else add(f.key, item[f.key]);
                 });
-                this.currentDetailId = id; this.openRecord(id);
+                this.openRecord(id);
             }
 
             setSearchChatMode(mode) {

@@ -749,11 +749,6 @@
                         <option value="data">LIST</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Global Action URL (Prefix)</label>
-                    <input type="text" class="form-input" id="conf-base-url" placeholder="https://google.com/search?q=">
-                    <small>If set, adds a link icon to each row: Base URL + Name.</small>
-                </div>
             </div>
 
             <div class="modal-tab-panel" id="tab-cloud" style="display:none;">
@@ -788,11 +783,16 @@
                             <option value="select">Selector</option>
                             <option value="notes">Notes</option>
                             <option value="checklist">Checklist</option>
+                            <option value="link">Link</option>
                         </select>
                     </div>
                     <div id="schema-options-row" class="add-options">
                         <label class="form-label" style="font-size:10px;">Dropdown Options</label>
                         <input type="text" class="form-input" id="schema-new-options" placeholder="A, B, C">
+                    </div>
+                    <div id="schema-link-row" class="add-options">
+                        <label class="form-label" style="font-size:10px;">Base URL</label>
+                        <input type="text" class="form-input" id="schema-new-baseurl" placeholder="e.g.: https://www.imdb.com/find?q=">
                     </div>
                     <div id="schema-kpi-row" class="add-kpi-options">
                         <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
@@ -1166,6 +1166,7 @@
                     const type = e.target.value;
                     document.getElementById('schema-options-row').classList.toggle('show', type === 'select');
                     document.getElementById('schema-kpi-row').classList.toggle('show', type === 'number' || type === 'select');
+                    document.getElementById('schema-link-row').classList.toggle('show', type === 'link');
                     document.getElementById('schema-new-kpiop').style.display = type === 'number' ? 'inline-block' : 'none';
                 });
 
@@ -1356,10 +1357,8 @@
                     const data = await res.json();
                     const record = data.record || {};
                     const meta = record.meta || {};
-                    if (meta.baseUrl !== undefined) localStorage.setItem(this.getStorageKey('base_url'), meta.baseUrl);
                     if (meta.defaultMode) localStorage.setItem(this.getStorageKey('default_mode'), meta.defaultMode);
                     if (meta.defaultTab) localStorage.setItem(this.getStorageKey('default_tab'), meta.defaultTab);
-                    if (meta.viewMode) { this.viewMode = meta.viewMode; this.applyMode(); }
                     if (meta.geminiModel) localStorage.setItem(this.getStorageKey('gemini_model'), meta.geminiModel);
                     if (meta.aiGlobal !== undefined) localStorage.setItem(this.getStorageKey('ai_global'), meta.aiGlobal);
                     if (meta.aiEdit !== undefined) localStorage.setItem(this.getStorageKey('ai_edit'), meta.aiEdit);
@@ -1447,8 +1446,6 @@
 
                 const payload = {
                     meta: { 
-                        baseUrl: localStorage.getItem(this.getStorageKey('base_url')) || '', 
-                        viewMode: this.viewMode,
                         defaultMode: localStorage.getItem(this.getStorageKey('default_mode')) || 'edit',
                         defaultTab: localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis',
                         lastBackup: this.lastBackup || '',
@@ -1627,12 +1624,14 @@
                 document.getElementById('schema-new-show').checked = field.showInList;
                 document.getElementById('schema-new-filterable').checked = !!field.filterable;
                 document.getElementById('schema-new-options').value = field.options ? field.options.join(', ') : '';
+                document.getElementById('schema-new-baseurl').value = field.baseUrl || '';
                 document.getElementById('schema-new-iskpi').checked = !!field.kpiMode;
                 document.getElementById('schema-new-kpiop').value = (field.kpiMode === 'avg' ? 'avg' : 'sum');
                 document.getElementById('schema-new-airule').value = field.aiRule || '';
                 
                 document.getElementById('schema-options-row').classList.toggle('show', field.type === 'select');
                 document.getElementById('schema-kpi-row').classList.toggle('show', field.type === 'number' || field.type === 'select');
+                document.getElementById('schema-link-row').classList.toggle('show', field.type === 'link');
                 document.getElementById('schema-new-kpiop').style.display = field.type === 'number' ? 'inline-block' : 'none';
 
                 document.getElementById('schema-box-title').textContent = 'Edit Field';
@@ -1665,11 +1664,13 @@
                 document.getElementById('schema-new-show').checked = true;
                 document.getElementById('schema-new-filterable').checked = false;
                 document.getElementById('schema-new-options').value = '';
+                document.getElementById('schema-new-baseurl').value = '';
                 document.getElementById('schema-new-iskpi').checked = false;
                 document.getElementById('schema-new-kpiop').value = 'sum';
                 document.getElementById('schema-new-airule').value = '';
                 document.getElementById('schema-options-row').classList.remove('show');
                 document.getElementById('schema-kpi-row').classList.remove('show');
+                document.getElementById('schema-link-row').classList.remove('show');
                 document.getElementById('schema-box-title').textContent = 'Add Field';
                 document.getElementById('schema-add-btn').textContent = 'Add';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'none';
@@ -1681,6 +1682,7 @@
                 if (!key) return;
                 const fieldDef = { key, type, showInList: document.getElementById('schema-new-show').checked, filterable: document.getElementById('schema-new-filterable').checked, aiRule: document.getElementById('schema-new-airule').value.trim() };
                 if (type === 'select') fieldDef.options = document.getElementById('schema-new-options').value.split(',').map(s => s.trim()).filter(s => s);
+                if (type === 'link') fieldDef.baseUrl = document.getElementById('schema-new-baseurl').value.trim();
                 
                 const isKpiChecked = document.getElementById('schema-new-iskpi').checked;
                 if (type === 'number' && isKpiChecked) {
@@ -1749,7 +1751,8 @@
             }
 
             exportCSV() {
-                const headers = ['name', ...this.db.schema.map(f => f.key)], rows = [headers.map(h => `"${h}"`).join(';')];
+                const schemaFields = this.db.schema.filter(f => f.type !== 'link');
+                const headers = ['name', ...schemaFields.map(f => f.key)], rows = [headers.map(h => `"${h}"`).join(';')];
                 this.db.items.forEach(i => { if (i.id && i.name && !i.deleted) rows.push(headers.map(h => `"${String(i[h] || '').replace(/"/g, '""')}"`).join(';')); });
                 const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${this.context}_data.csv`; a.click();
@@ -1860,7 +1863,6 @@
 
             renderTable(filterText = '') {
                 const tbody = document.querySelector('#data-table tbody'), thead = document.querySelector('#data-table thead');
-                const baseUrl = localStorage.getItem(this.getStorageKey('base_url'));
                 let items = this.db.items.filter(i => {
                     const search = !i?.name ? false : Object.values(i).some(v => String(v).toLowerCase().includes(filterText.toLowerCase()));
                     const filters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
@@ -1879,8 +1881,13 @@
                 document.querySelector('.table-container').style.display = items.length ? 'block' : 'none';
                 document.getElementById('empty-state').style.display = items.length ? 'none' : 'block';
                 const fields = this.db.schema.filter(f => f.showInList && f.key !== 'name'), arrow = (c) => this.sortColumn === c ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
-                thead.innerHTML = `<tr style="cursor:pointer">${baseUrl ? '<th style="width:38px;text-align:center;">🔗</th>' : ''}<th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => `<th onclick="app.handleSort('${f.key}')">${f.key}${arrow(f.key)}</th>`).join('')}</tr>`;
-                tbody.innerHTML = items.map(i => `<tr onclick="app.${this.viewMode === 'view' ? 'viewItem' : 'editItem'}('${i.id}')">${baseUrl ? `<td style="text-align:center;"><a href="${baseUrl + encodeURIComponent(i.name)}" target="_blank" class="action-icon-link" onclick="event.stopPropagation()">🔗</a></td>` : ''}<td><strong>${i.name}</strong></td>${fields.map(f => `<td>${i[f.key] || '—'}</td>`).join('')}</tr>`).join('');
+                thead.innerHTML = `<tr style="cursor:pointer"><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => `<th onclick="app.handleSort('${f.key}')">${f.key}${arrow(f.key)}</th>`).join('')}</tr>`;
+                tbody.innerHTML = items.map(i => `<tr onclick="app.${this.viewMode === 'view' ? 'viewItem' : 'editItem'}('${i.id}')"><td><strong>${i.name}</strong></td>${fields.map(f => {
+                    if (f.type === 'link') {
+                        return `<td>${f.baseUrl ? `<a href="${f.baseUrl + encodeURIComponent(i.name)}" target="_blank" class="action-icon-link" onclick="event.stopPropagation()">🔗</a>` : '—'}</td>`;
+                    }
+                    return `<td>${i[f.key] || '—'}</td>`;
+                }).join('')}</tr>`).join('');
             }
 
             openEditor() { this.currentItemId = null; document.getElementById('form-title').textContent = 'New Record'; document.getElementById('field-name').value = ''; document.getElementById('delete-btn').style.display = 'none'; this.renderDynamicFormFields({}); this.toggleAIAssistantBox(); this.openRecord('__new__'); }
@@ -1890,6 +1897,7 @@
             renderDynamicFormFields(vals) {
                 const container = document.getElementById('dynamic-fields-container'); container.innerHTML = '';
                 this.db.schema.forEach(f => {
+                    if (f.type === 'link') return;
                     const group = document.createElement('div'); group.className = 'form-group'; group.innerHTML = `<label class="form-label">${f.key}</label>`;
                     let el;
                     if (f.type === 'select') { el = document.createElement('select'); el.innerHTML = '<option value="">— Select —</option>' + f.options.map(o => `<option value="${o}" ${vals[f.key] === o ? 'selected' : ''}>${o}</option>`).join(''); }
@@ -1941,7 +1949,6 @@
                 const modal = document.getElementById('config-modal'); document.getElementById('modal-context').textContent = this.context;
                 document.getElementById('conf-api-key').value = localStorage.getItem(this.GLOBAL_API_KEY) || '';
                 document.getElementById('conf-bin-id').value = localStorage.getItem(this.getStorageKey('bin_id')) || '';
-                document.getElementById('conf-base-url').value = localStorage.getItem(this.getStorageKey('base_url')) || '';
                 document.getElementById('conf-default-mode').value = localStorage.getItem(this.getStorageKey('default_mode')) || 'edit';
                 document.getElementById('conf-default-tab').value = localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis';
                 document.getElementById('conf-gemini-key').value = localStorage.getItem('global_gemini_api_key') || '';
@@ -1982,7 +1989,6 @@
                 if (apiKey) localStorage.setItem(this.GLOBAL_API_KEY, apiKey); 
                 if (binId) localStorage.setItem(this.getStorageKey('bin_id'), binId);
                 else if (!localStorage.getItem(this.getStorageKey('bin_id'))) localStorage.removeItem(this.getStorageKey('bin_id'));
-                localStorage.setItem(this.getStorageKey('base_url'), document.getElementById('conf-base-url').value.trim());
                 localStorage.setItem(this.getStorageKey('default_mode'), document.getElementById('conf-default-mode').value);
                 localStorage.setItem(this.getStorageKey('default_tab'), document.getElementById('conf-default-tab').value);
                 localStorage.setItem('global_gemini_api_key', document.getElementById('conf-gemini-key').value.trim());
@@ -2062,8 +2068,13 @@
                 const item = this.db.items.find(i => i.id === id); if (!item) return;
                 document.getElementById('detail-title').textContent = item.name; const container = document.getElementById('detail-fields-container'); container.innerHTML = '';
                 const add = (l, v) => { const r = document.createElement('div'); r.className = 'detail-row'; r.innerHTML = `<span class="detail-row-key">${l}:</span><span class="detail-row-value ${!v ? 'empty' : ''}">${v || '—'}</span>`; container.appendChild(r); };
-                add('NAME', item.name); this.db.schema.forEach(f => {
-                    if (f.type === 'checklist') {
+                this.db.schema.forEach(f => {
+                    if (f.type === 'link') {
+                        const linkHtml = f.baseUrl ? `<a href="${f.baseUrl + encodeURIComponent(item.name)}" target="_blank">🔗 Abrir enlace</a>` : '—';
+                        const r = document.createElement('div'); r.className = 'detail-row';
+                        r.innerHTML = `<span class="detail-row-key">${f.key}:</span><span class="detail-row-value">${linkHtml}</span>`;
+                        container.appendChild(r);
+                    } else if (f.type === 'checklist') {
                         const lines = (item[f.key] || '').split('\n').filter(l => l.trim());
                         let html = '';
                         if (lines.length === 0) {

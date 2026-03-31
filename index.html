@@ -420,6 +420,7 @@
             cursor: pointer; transition: background 0.12s, color 0.12s; white-space: nowrap;
         }
         .pill-toggle-btn.active { background: var(--primary); color: #fff; }
+        .pill-toggle-btn.active-danger { background: var(--danger); color: #fff; }
 
         #chat-send-btn { display: none; flex-shrink: 0; }
 
@@ -655,6 +656,10 @@
 
             <div id="list-view" class="view-section active">
                 <div class="search-bar-row">
+                    <div class="pill-toggle" id="sync-toggle-group">
+                        <button class="pill-toggle-btn active" id="sync-on-btn">Sync On</button>
+                        <button class="pill-toggle-btn" id="sync-off-btn">Sync Off</button>
+                    </div>
                     <div class="pill-toggle" id="view-mode-toggle">
                         <button class="pill-toggle-btn active" id="toggle-edit-btn">Edit</button>
                         <button class="pill-toggle-btn" id="toggle-view-btn">View</button>
@@ -782,13 +787,6 @@
             </div>
 
             <div class="modal-tab-panel" id="tab-cloud" style="display:none;">
-                <div class="form-group">
-                    <label class="form-label">Sync Mode</label>
-                    <select id="conf-sync-mode" class="form-select">
-                        <option value="disabled">Disabled</option>
-                        <option value="modification">Enabled (On Modification)</option>
-                    </select>
-                </div>
                 <div class="form-group">
                     <label class="form-label">Global JSONBin API Key</label>
                     <input type="password" class="form-input" id="conf-api-key" placeholder="$2a$10...">
@@ -952,7 +950,7 @@
                 this.editingFieldKey = null;
                 this.isProcessing = false;
                 this.eventsBound = false;
-                this.syncMode = 'disabled';
+                this.syncEnabled = true;
                 this.RECENT_KEY = 'global_recent_contexts';
                 this.GLOBAL_API_KEY = 'global_jsonbin_api_key';
                 this.sortColumn = 'name';
@@ -1099,9 +1097,8 @@
                 const defMode = localStorage.getItem(this.getStorageKey('default_mode')) || 'edit';
                 const defTab = localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis';
                 this.viewMode = localStorage.getItem(this.getStorageKey('view_mode')) || defMode;
-                this.syncMode = localStorage.getItem(this.getStorageKey('sync_mode')) || 'modification';
                 
-                this.updateSyncButton('idle');
+                this.setSyncState(true);
                 this.bindEvents();
                 this.loadLocalData();
                 this.applyMode();
@@ -1141,6 +1138,9 @@
                 this.eventsBound = true;
 
                 document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
+
+                document.getElementById('sync-on-btn').addEventListener('click', () => this.setSyncState(true));
+                document.getElementById('sync-off-btn').addEventListener('click', () => this.setSyncState(false));
 
                 document.getElementById('toggle-edit-btn').addEventListener('click', () => {
                     if (this.viewMode !== 'edit') this.toggleMode();
@@ -1215,6 +1215,20 @@
                         document.getElementById(`tab-${tab.dataset.tab}`).style.display = 'block';
                     });
                 });
+            }
+
+            setSyncState(isEnabled) {
+                this.syncEnabled = isEnabled;
+                const btnOn = document.getElementById('sync-on-btn');
+                const btnOff = document.getElementById('sync-off-btn');
+                if (isEnabled) {
+                    btnOn.classList.add('active');
+                    btnOff.classList.remove('active', 'active-danger');
+                } else {
+                    btnOn.classList.remove('active');
+                    btnOff.classList.add('active-danger');
+                }
+                this.updateSyncButton('idle');
             }
 
             openTokenModal() {
@@ -1328,7 +1342,7 @@
 
             updateSyncButton(state) {
                 const header = document.querySelector('.app-header');
-                const isSyncDisabled = (this.syncMode !== 'modification');
+                const isSyncDisabled = !this.syncEnabled;
 
                 const setIdleColor = () => {
                     if (isSyncDisabled) {
@@ -1392,10 +1406,6 @@
                     if (meta.geminiModel) localStorage.setItem(this.getStorageKey('gemini_model'), meta.geminiModel);
                     if (meta.aiGlobal !== undefined) localStorage.setItem(this.getStorageKey('ai_global'), meta.aiGlobal);
                     if (meta.aiEdit !== undefined) localStorage.setItem(this.getStorageKey('ai_edit'), meta.aiEdit);
-                    if (meta.syncMode) {
-                        this.syncMode = meta.syncMode;
-                        localStorage.setItem(this.getStorageKey('sync_mode'), this.syncMode);
-                    }
                     if (meta.schemaModified) this.db.schemaModified = meta.schemaModified;
                     
                     if (meta.lastBackup) this.lastBackup = meta.lastBackup;
@@ -1422,7 +1432,7 @@
             }
 
             async mergeAndSync() {
-                if (this.syncMode === 'disabled') {
+                if (!this.syncEnabled) {
                     this.saveLocalData();
                     return;
                 }
@@ -1482,7 +1492,6 @@
                         geminiModel: localStorage.getItem(this.getStorageKey('gemini_model')) || '',
                         aiGlobal: localStorage.getItem(this.getStorageKey('ai_global')) || '',
                         aiEdit: localStorage.getItem(this.getStorageKey('ai_edit')) || '',
-                        syncMode: this.syncMode,
                         schemaModified: mergedSchemaModified
                     },
                     schema: mergedSchema, items: mergedItems
@@ -1634,7 +1643,7 @@
                         e.preventDefault(); const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
                         const item = this.db.schema.splice(fromIdx, 1)[0]; this.db.schema.splice(index, 0, item);
                         this.saveSchema(); this.renderSchemaList(); this.renderTable(document.getElementById('search-input').value);
-                        if (this.syncMode === 'modification') this.debounceSync();
+                        if (this.syncEnabled) this.debounceSync();
                     });
                     
                     let meta = field.type.toUpperCase();
@@ -1727,10 +1736,10 @@
                     if (this.editingFieldKey !== key) { this.db.items.forEach(i => { if (i[this.editingFieldKey] !== undefined) { i[key] = i[this.editingFieldKey]; delete i[this.editingFieldKey]; } }); this.saveLocalData(); }
                 } else { this.db.schema.push(fieldDef); }
                 this.saveSchema(); this.renderSchemaList(); this.resetSchemaForm(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value);
-                if (this.syncMode === 'modification') this.debounceSync();
+                if (this.syncEnabled) this.debounceSync();
             }
 
-            removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncMode === 'modification') this.mergeAndSync(); } }
+            removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncEnabled) this.mergeAndSync(); } }
 
             saveSchema() { 
                 this.db.schemaModified = new Date().toISOString();
@@ -1817,7 +1826,7 @@
                     this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
                     if(newFields) this.saveSchema();
                     this.saveLocalData(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); this.showToast(`Imported ${importedCount}`);
-                    if (this.syncMode === 'modification') this.debounceSync();
+                    if (this.syncEnabled) this.debounceSync();
                 };
                 reader.readAsText(event.target.files[0]);
             }
@@ -1974,7 +1983,7 @@
                     item[key] = value;
                     item.lastModified = new Date().toISOString();
                     this.saveLocalData();
-                    if (this.syncMode === 'modification') this.debounceSync();
+                    if (this.syncEnabled) this.debounceSync();
                 }
             }
 
@@ -2014,7 +2023,7 @@
                 }
                 this.renderFilters(); 
                 this.renderTable(document.getElementById('search-input').value);
-                if (this.syncMode === 'modification') this.debounceSync();
+                if (this.syncEnabled) this.debounceSync();
             }
 
             deleteItem() { 
@@ -2028,7 +2037,7 @@
                         this.closeRecord(this.currentItemId); 
                         this.renderFilters(); 
                         this.renderTable(document.getElementById('search-input').value);
-                        if (this.syncMode === 'modification') this.debounceSync(); 
+                        if (this.syncEnabled) this.debounceSync(); 
                     }
                 } 
             }
@@ -2043,7 +2052,6 @@
                 document.getElementById('conf-ai-ctx-global').value = localStorage.getItem(this.getStorageKey('ai_global')) || '';
                 document.getElementById('conf-ai-ctx-edit').value = localStorage.getItem(this.getStorageKey('ai_edit')) || '';
                 document.getElementById('conf-ai-ctx-list').value = localStorage.getItem(this.getStorageKey('ai_list')) || '';
-                document.getElementById('conf-sync-mode').value = localStorage.getItem(this.getStorageKey('sync_mode')) || 'modification';
                 document.getElementById('conf-last-backup').textContent = this.lastBackup || 'Never';
 
                 this.renderSchemaList(); modal.classList.add('show');
@@ -2083,9 +2091,6 @@
                 localStorage.setItem(this.getStorageKey('gemini_model'), document.getElementById('conf-gemini-model').value);
                 localStorage.setItem(this.getStorageKey('ai_global'), document.getElementById('conf-ai-ctx-global').value.trim());
                 localStorage.setItem(this.getStorageKey('ai_edit'), document.getElementById('conf-ai-ctx-edit').value.trim());
-                
-                this.syncMode = document.getElementById('conf-sync-mode').value;
-                localStorage.setItem(this.getStorageKey('sync_mode'), this.syncMode);
 
                 this.updateSyncButton('idle'); 
 
@@ -2132,7 +2137,7 @@
                     lines[index] = (newCheckedState ? '- ' : '') + cleanText;
                     item[key] = lines.join('\n');
                     this.saveLocalData();
-                    if (this.syncMode === 'modification') this.debounceSync();
+                    if (this.syncEnabled) this.debounceSync();
                 }
             }
 
@@ -2148,7 +2153,7 @@
                 item.lastModified = new Date().toISOString();
                 item[key] = newLines.join('\n');
                 this.saveLocalData();
-                if (this.syncMode === 'modification') this.debounceSync();
+                if (this.syncEnabled) this.debounceSync();
                 this.viewItem(id); 
             }
 

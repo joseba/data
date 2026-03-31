@@ -35,6 +35,7 @@
             font-family: 'Barlow', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.5;
+            min-width: fit-content;
         }
 
         /* ─── APP CONTAINER ─── */
@@ -317,6 +318,22 @@
         }
         .action-icon-link:hover { transform: scale(1.2); opacity: 1; }
 
+        .excel-input {
+            width: 100%;
+            min-width: 100px;
+            padding: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-family: 'Barlow', sans-serif;
+            font-size: 14px;
+            outline: none;
+            resize: vertical;
+        }
+        .excel-input:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
         /* ─── FORMS ─── */
         .form-card {
             background: var(--surface); padding: 26px;
@@ -577,8 +594,8 @@
         #ai-assistant-box .chat-input-row { display: flex; gap: 8px; }
         #ai-assistant-box .form-input { border-color: var(--border); background: var(--bg); }
 
-        #empty-state { text-align: center; padding: 48px; display: none; }
-        #empty-state p {
+        #empty-state, #empty-state-excel { text-align: center; padding: 48px; display: none; }
+        #empty-state p, #empty-state-excel p {
             font-family: 'Barlow Condensed', "Arial Narrow", sans-serif;
             font-size: 13px; letter-spacing: 0.1em;
             text-transform: uppercase; color: var(--text-light);
@@ -655,6 +672,7 @@
                 <div class="list-tabs">
                     <button class="list-tab active" data-list-tab="kpis">KPIs</button>
                     <button class="list-tab" data-list-tab="data">LIST</button>
+                    <button class="list-tab" data-list-tab="excel">EXCEL</button>
                     <div id="record-tabs-container" style="display:contents;"></div>
                 </div>
 
@@ -671,6 +689,18 @@
                         </table>
                     </div>
                     <div id="empty-state">
+                        <p>No records found locally.</p>
+                    </div>
+                </div>
+
+                <div id="list-tab-excel" style="display: none;">
+                    <div class="table-container">
+                        <table id="excel-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div id="empty-state-excel">
                         <p>No records found locally.</p>
                     </div>
                 </div>
@@ -939,7 +969,7 @@
 
             debounceSync() {
                 clearTimeout(this.syncDebounceTimer);
-                this.syncDebounceTimer = setTimeout(() => this.mergeAndSync(), 1000);
+                this.syncDebounceTimer = setTimeout(() => this.mergeAndSync(), 5000);
             }
 
             init() {
@@ -1139,7 +1169,7 @@
                 document.getElementById('cancel-copy').addEventListener('click', () => document.getElementById('copy-modal').classList.remove('show'));
                 document.getElementById('confirm-copy').addEventListener('click', () => this.executeCopy());
 
-                document.querySelectorAll('.list-tab[data-list-tab="kpis"], .list-tab[data-list-tab="data"]').forEach(tab => {
+                document.querySelectorAll('.list-tab[data-list-tab="kpis"], .list-tab[data-list-tab="data"], .list-tab[data-list-tab="excel"]').forEach(tab => {
                     tab.addEventListener('click', () => this.switchListTab(tab.dataset.listTab));
                 });
 
@@ -1799,6 +1829,7 @@
                 if (btn) btn.classList.add('active');
                 document.getElementById('list-tab-kpis').style.display = name === 'kpis' ? 'block' : 'none';
                 document.getElementById('list-tab-data').style.display = name === 'data' ? 'block' : 'none';
+                document.getElementById('list-tab-excel').style.display = name === 'excel' ? 'block' : 'none';
                 document.getElementById('list-tab-record').style.display = name === 'record' ? 'block' : 'none';
             }
 
@@ -1878,7 +1909,7 @@
                     return 0;
                 });
                 this.updateKPIs(items);
-                document.querySelector('.table-container').style.display = items.length ? 'block' : 'none';
+                document.querySelector('#list-tab-data .table-container').style.display = items.length ? 'block' : 'none';
                 document.getElementById('empty-state').style.display = items.length ? 'none' : 'block';
                 const fields = this.db.schema.filter(f => f.showInList && f.key !== 'name'), arrow = (c) => this.sortColumn === c ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
                 thead.innerHTML = `<tr style="cursor:pointer"><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => `<th onclick="app.handleSort('${f.key}')">${f.key}${arrow(f.key)}</th>`).join('')}</tr>`;
@@ -1888,6 +1919,63 @@
                     }
                     return `<td>${i[f.key] || '—'}</td>`;
                 }).join('')}</tr>`).join('');
+                
+                this.renderExcelTable(filterText);
+            }
+
+            renderExcelTable(filterText = '') {
+                const tbody = document.querySelector('#excel-table tbody');
+                const thead = document.querySelector('#excel-table thead');
+                let items = this.db.items.filter(i => {
+                    const search = !i?.name ? false : Object.values(i).some(v => String(v).toLowerCase().includes(filterText.toLowerCase()));
+                    const filters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
+                    return i && i.id && i.name && !i.deleted && search && filters;
+                });
+                items.sort((a, b) => {
+                    let vA = a[this.sortColumn] || '', vB = b[this.sortColumn] || '';
+                    const numA = parseFloat(vA), numB = parseFloat(vB);
+                    if (!isNaN(numA) && !isNaN(numB)) { vA = numA; vB = numB; }
+                    else { vA = String(vA).toLowerCase(); vB = String(vB).toLowerCase(); }
+                    if (vA < vB) return this.sortDirection === 'asc' ? -1 : 1;
+                    if (vA > vB) return this.sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+                
+                document.querySelector('#list-tab-excel .table-container').style.display = items.length ? 'block' : 'none';
+                document.getElementById('empty-state-excel').style.display = items.length ? 'none' : 'block';
+                
+                const fields = this.db.schema.filter(f => f.showInList && f.key !== 'name' && f.type !== 'link');
+                const arrow = (c) => this.sortColumn === c ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
+                
+                thead.innerHTML = `<tr><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => `<th onclick="app.handleSort('${f.key}')">${f.key}${arrow(f.key)}</th>`).join('')}</tr>`;
+                
+                tbody.innerHTML = items.map(i => {
+                    return `<tr>
+                        <td><input type="text" class="excel-input" value="${(i.name || '').replace(/"/g, '&quot;')}" onchange="app.updateExcelCell('${i.id}', 'name', this.value)"></td>
+                        ${fields.map(f => {
+                            let val = i[f.key] || '';
+                            if (f.type === 'select') {
+                                let opts = '<option value="">— Select —</option>' + f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('');
+                                return `<td><select class="excel-input" onchange="app.updateExcelCell('${i.id}', '${f.key}', this.value)">${opts}</select></td>`;
+                            } else if (f.type === 'notes' || f.type === 'checklist') {
+                                return `<td><textarea rows="1" class="excel-input" onchange="app.updateExcelCell('${i.id}', '${f.key}', this.value)">${val.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea></td>`;
+                            } else {
+                                let t = f.type === 'number' ? 'number' : 'text';
+                                return `<td><input type="${t}" class="excel-input" value="${String(val).replace(/"/g, '&quot;')}" onchange="app.updateExcelCell('${i.id}', '${f.key}', this.value)"></td>`;
+                            }
+                        }).join('')}
+                    </tr>`;
+                }).join('');
+            }
+
+            updateExcelCell(id, key, value) {
+                const item = this.db.items.find(i => i.id === id);
+                if (item) {
+                    item[key] = value;
+                    item.lastModified = new Date().toISOString();
+                    this.saveLocalData();
+                    if (this.syncMode === 'modification') this.debounceSync();
+                }
             }
 
             openEditor() { this.currentItemId = null; document.getElementById('form-title').textContent = 'New Record'; document.getElementById('field-name').value = ''; document.getElementById('delete-btn').style.display = 'none'; this.renderDynamicFormFields({}); this.toggleAIAssistantBox(); this.openRecord('__new__'); }

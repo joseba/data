@@ -837,12 +837,15 @@
                         <input type="text" class="form-input" id="schema-new-airule" placeholder="AI Field Context (e.g.: Extract year only)" style="font-size:12px;">
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-                        <div style="display:flex; gap:14px;">
+                        <div style="display:flex; gap:14px; flex-wrap:wrap;">
                             <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
                                 <input type="checkbox" id="schema-new-show"> Show in List
                             </label>
                             <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
                                 <input type="checkbox" id="schema-new-filterable"> Filter
+                            </label>
+                            <label id="schema-pct-label" style="font-size:12px; display:none; align-items:center; gap:5px; cursor:pointer;">
+                                <input type="checkbox" id="schema-new-pct"> Show % in List
                             </label>
                         </div>
                         <div>
@@ -968,6 +971,14 @@
             debounceSync() {
                 clearTimeout(this.syncDebounceTimer);
                 this.syncDebounceTimer = setTimeout(() => this.mergeAndSync(), 5000);
+            }
+
+            // ─── Helper to compute checklist completion percentage ───
+            calculateChecklistPct(value) {
+                const lines = (value || '').split('\n').filter(l => l.trim());
+                if (lines.length === 0) return '0%';
+                const completed = lines.filter(l => l.trim().startsWith('-')).length;
+                return Math.round((completed / lines.length) * 100) + '%';
             }
 
             init() {
@@ -1198,6 +1209,7 @@
                     document.getElementById('schema-kpi-row').classList.toggle('show', type === 'number' || type === 'select');
                     document.getElementById('schema-link-row').classList.toggle('show', type === 'link');
                     document.getElementById('schema-new-kpiop').style.display = type === 'number' ? 'inline-block' : 'none';
+                    document.getElementById('schema-pct-label').style.display = type === 'checklist' ? 'flex' : 'none';
                 });
 
                 document.getElementById('search-input').addEventListener('input', (e) => {
@@ -1649,6 +1661,7 @@
                     let meta = field.type.toUpperCase();
                     if (field.type === 'number' && field.kpiMode) meta += ` (${field.kpiMode.toUpperCase()})`;
                     if (field.type === 'select' && field.kpiMode === 'dist') meta += ` (DIST)`;
+                    if (field.type === 'checklist' && field.showPctInList) meta += ` (PCT)`;
                     meta += ` · ${field.showInList ? 'VISIBLE' : 'HIDDEN'} · ${field.filterable ? 'FILTER' : 'NO FILTER'}`;
 
                     div.innerHTML = `<div class="schema-content-wrapper"><span class="schema-drag-handle">☰</span><div class="schema-info"><span class="schema-name">${field.key}</span><span class="schema-meta">${meta}</span></div></div><div class="schema-actions"><span class="schema-icon edit" onclick="app.editSchemaField('${field.key}')">✎</span><span class="schema-icon delete" onclick="app.removeSchemaField('${field.key}')">✕</span></div>`;
@@ -1667,11 +1680,13 @@
                 document.getElementById('schema-new-iskpi').checked = !!field.kpiMode;
                 document.getElementById('schema-new-kpiop').value = (field.kpiMode === 'avg' ? 'avg' : 'sum');
                 document.getElementById('schema-new-airule').value = field.aiRule || '';
+                document.getElementById('schema-new-pct').checked = !!field.showPctInList;
                 
                 document.getElementById('schema-options-row').classList.toggle('show', field.type === 'select');
                 document.getElementById('schema-kpi-row').classList.toggle('show', field.type === 'number' || field.type === 'select');
                 document.getElementById('schema-link-row').classList.toggle('show', field.type === 'link');
                 document.getElementById('schema-new-kpiop').style.display = field.type === 'number' ? 'inline-block' : 'none';
+                document.getElementById('schema-pct-label').style.display = field.type === 'checklist' ? 'flex' : 'none';
 
                 document.getElementById('schema-box-title').textContent = 'Edit Field';
                 document.getElementById('schema-add-btn').textContent = 'Update';
@@ -1694,6 +1709,7 @@
                 document.getElementById('schema-new-kpiop').style.display = 'none';
                 document.getElementById('schema-new-options').value = optionsArray.join(', ');
                 document.getElementById('schema-to-selector-btn').style.display = 'none';
+                document.getElementById('schema-pct-label').style.display = 'none';
                 this.showToast('Ready! Click Update to save.');
             }
 
@@ -1707,9 +1723,11 @@
                 document.getElementById('schema-new-iskpi').checked = false;
                 document.getElementById('schema-new-kpiop').value = 'sum';
                 document.getElementById('schema-new-airule').value = '';
+                document.getElementById('schema-new-pct').checked = false;
                 document.getElementById('schema-options-row').classList.remove('show');
                 document.getElementById('schema-kpi-row').classList.remove('show');
                 document.getElementById('schema-link-row').classList.remove('show');
+                document.getElementById('schema-pct-label').style.display = 'none';
                 document.getElementById('schema-box-title').textContent = 'Add Field';
                 document.getElementById('schema-add-btn').textContent = 'Add';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'none';
@@ -1722,6 +1740,7 @@
                 const fieldDef = { key, type, showInList: document.getElementById('schema-new-show').checked, filterable: document.getElementById('schema-new-filterable').checked, aiRule: document.getElementById('schema-new-airule').value.trim() };
                 if (type === 'select') fieldDef.options = document.getElementById('schema-new-options').value.split(',').map(s => s.trim()).filter(s => s);
                 if (type === 'link') fieldDef.baseUrl = document.getElementById('schema-new-baseurl').value.trim();
+                if (type === 'checklist') fieldDef.showPctInList = document.getElementById('schema-new-pct').checked;
                 
                 const isKpiChecked = document.getElementById('schema-new-iskpi').checked;
                 if (type === 'number' && isKpiChecked) {
@@ -1921,10 +1940,16 @@
                 document.querySelector('#list-tab-data .table-container').style.display = items.length ? 'block' : 'none';
                 document.getElementById('empty-state').style.display = items.length ? 'none' : 'block';
                 const fields = this.db.schema.filter(f => f.showInList && f.key !== 'name'), arrow = (c) => this.sortColumn === c ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
-                thead.innerHTML = `<tr style="cursor:pointer"><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => `<th onclick="app.handleSort('${f.key}')">${f.key}${arrow(f.key)}</th>`).join('')}</tr>`;
+                thead.innerHTML = `<tr style="cursor:pointer"><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => {
+                    const headerLabel = (f.type === 'checklist' && f.showPctInList) ? `${f.key}%` : f.key;
+                    return `<th onclick="app.handleSort('${f.key}')">${headerLabel}${arrow(f.key)}</th>`;
+                }).join('')}</tr>`;
                 tbody.innerHTML = items.map(i => `<tr onclick="app.${this.viewMode === 'view' ? 'viewItem' : 'editItem'}('${i.id}')"><td><strong>${i.name}</strong></td>${fields.map(f => {
                     if (f.type === 'link') {
                         return `<td>${f.baseUrl ? `<a href="${f.baseUrl + encodeURIComponent(i.name)}" target="_blank" class="action-icon-link" onclick="event.stopPropagation()">🔗</a>` : '—'}</td>`;
+                    }
+                    if (f.type === 'checklist' && f.showPctInList) {
+                        return `<td>${this.calculateChecklistPct(i[f.key])}</td>`;
                     }
                     return `<td>${i[f.key] || '—'}</td>`;
                 }).join('')}</tr>`).join('');
@@ -1956,7 +1981,10 @@
                 const fields = this.db.schema.filter(f => f.showInList && f.key !== 'name' && f.type !== 'link');
                 const arrow = (c) => this.sortColumn === c ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
                 
-                thead.innerHTML = `<tr><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => `<th onclick="app.handleSort('${f.key}')">${f.key}${arrow(f.key)}</th>`).join('')}</tr>`;
+                thead.innerHTML = `<tr><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => {
+                    const headerLabel = (f.type === 'checklist' && f.showPctInList) ? `${f.key}%` : f.key;
+                    return `<th onclick="app.handleSort('${f.key}')">${headerLabel}${arrow(f.key)}</th>`;
+                }).join('')}</tr>`;
                 
                 tbody.innerHTML = items.map(i => {
                     return `<tr>
@@ -1966,6 +1994,8 @@
                             if (f.type === 'select') {
                                 let opts = '<option value="">— Select —</option>' + f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('');
                                 return `<td><select class="excel-input" onchange="app.updateExcelCell('${i.id}', '${f.key}', this.value)">${opts}</select></td>`;
+                            } else if (f.type === 'checklist' && f.showPctInList) {
+                                return `<td>${this.calculateChecklistPct(val)}</td>`;
                             } else if (f.type === 'notes' || f.type === 'checklist') {
                                 return `<td><textarea rows="1" class="excel-input" onchange="app.updateExcelCell('${i.id}', '${f.key}', this.value)">${val.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea></td>`;
                             } else {

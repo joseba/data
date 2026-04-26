@@ -26,9 +26,7 @@
             --shadow: 0 1px 3px rgba(28,25,22,0.07), 0 1px 2px rgba(28,25,22,0.05);
             --shadow-md: 0 4px 12px rgba(28,25,22,0.1), 0 2px 4px rgba(28,25,22,0.06);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             background: var(--bg);
             color: var(--text);
@@ -37,11 +35,9 @@
             line-height: 1.5;
             min-width: fit-content;
         }
-
         /* ─── APP CONTAINER ─── */
         #app-container { display: none; }
         .content-wrapper { max-width: 100%; margin: 0 auto; padding: 24px 20px 48px; }
-
         /* ─── STICKY HEADER ─── */
         .app-header {
             background: var(--header-bg);
@@ -77,7 +73,6 @@
             flex-wrap: wrap;
             align-items: center;
         }
-
         /* ─── BUTTONS ─── */
         .btn {
             padding: 6px 13px;
@@ -100,7 +95,6 @@
             line-height: 1;
         }
         .btn:hover { background: var(--bg); }
-
         .header-actions .btn {
             border-color: rgba(255,255,255,0.15);
             background: rgba(255,255,255,0.07);
@@ -111,7 +105,6 @@
             background: rgba(255,255,255,0.14);
             color: white;
         }
-
         .btn-primary { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
         .btn-primary:hover { background: var(--primary-hover) !important; border-color: var(--primary-hover) !important; }
         .btn-danger { background: rgba(220,38,38,0.07) !important; color: var(--danger) !important; border-color: rgba(220,38,38,0.28) !important; }
@@ -121,11 +114,9 @@
         .btn-info { background: rgba(3,105,161,0.08) !important; color: #0369a1 !important; border-color: rgba(3,105,161,0.22) !important; }
         .btn-info:hover { background: rgba(3,105,161,0.15) !important; }
         .btn-sm { padding: 4px 9px; font-size: 11px; }
-
         .btn-sync-success { background: var(--success) !important; color: #fff !important; border-color: var(--success) !important; }
         .btn-sync-off { background: rgba(255,255,255,0.04) !important; color: rgba(255,255,255,0.28) !important; border-color: rgba(255,255,255,0.07) !important; }
         .btn-sync-error { background: var(--danger) !important; color: #fff !important; border-color: var(--danger) !important; }
-
         .btn-syncing::after {
             content: '';
             display: inline-block;
@@ -138,7 +129,6 @@
             flex-shrink: 0;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         /* ─── KPI SECTION ─── */
         .kpi-container { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
         .kpi-card {
@@ -164,14 +154,12 @@
             color: var(--text); line-height: 1;
         }
         .kpi-value.highlight { color: var(--primary); }
-
         /* Estilos para KPI tipo Select (Distribución) */
         .kpi-dist-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
         .kpi-dist-row { display: flex; flex-direction: column; gap: 2px; }
         .kpi-dist-info { display: flex; justify-content: space-between; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); }
         .kpi-dist-bar-bg { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
         .kpi-dist-bar-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s ease; }
-
         /* ─── FILTER SECTION ─── */
         .filter-section {
             margin-bottom: 14px; display: none;
@@ -203,7 +191,6 @@
         }
         .filter-chip:hover { background: var(--border); color: var(--text); }
         .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
         /* ─── LIST VIEW TABS ─── */
         .list-tabs {
             display: flex;
@@ -230,7 +217,6 @@
         .list-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
         .record-tab-x { opacity: 0.4; font-size: 9px; padding: 1px 3px; border-radius: 2px; transition: opacity 0.12s, background 0.12s; }
         .record-tab-x:hover { opacity: 1; background: rgba(220,38,38,0.12); color: var(--danger); }
-
         /* ─── SCHEMA MANAGER ─── */
         .schema-list {
             display: flex; flex-direction: column; gap: 5px;
@@ -264,7 +250,6 @@
         .schema-icon.edit:hover { background: #eff6ff; }
         .schema-icon.delete { color: var(--danger); }
         .schema-icon.delete:hover { background: #fef2f2; }
-
         .add-field-box {
             background: var(--bg); padding: 13px;
             border-radius: var(--radius); border: 1px solid transparent;
@@ -278,7 +263,6 @@
             border: 1px solid var(--border);
         }
         .add-options.show, .add-kpi-options.show { display: block; }
-
         /* ─── VIEWS & TRANSITIONS ─── */
         .view-section { display: none; }
         .view-section.active {
@@ -289,7 +273,6 @@
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         /* ─── TABLE ─── */
         .table-container {
             background: var(--surface);
@@ -317,7 +300,6 @@
             padding: 2px 4px; transition: transform 0.15s; opacity: 0.55;
         }
         .action-icon-link:hover { transform: scale(1.2); opacity: 1; }
-
         .excel-input {
             width: 100%;
             min-width: 100px;
@@ -333,7 +315,6 @@
             border-color: var(--primary);
             background: white;
         }
-
         /* ─── FORMS ─── */
         .form-card {
             background: var(--surface); padding: 26px;
@@ -374,7 +355,6 @@
             box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
         textarea.form-input { resize: vertical; min-height: 2.5em; }
-
         /* Detail view */
         .detail-row {
             display: flex; align-items: baseline; padding: 7px 0;
@@ -400,13 +380,11 @@
             width: 15px; height: 15px; flex-shrink: 0;
             cursor: pointer; accent-color: var(--primary);
         }
-
         /* ─── SEARCH / CHAT BAR ROW ─── */
         .search-bar-row {
             display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
         }
         .search-bar-row .search-bar { margin-bottom: 0; flex: 1; }
-
         /* ─── PILL TOGGLES (shared style for both View/Edit and Search/Chat) ─── */
         .pill-toggle {
             display: flex; flex-shrink: 0;
@@ -421,9 +399,7 @@
         }
         .pill-toggle-btn.active { background: var(--primary); color: #fff; }
         .pill-toggle-btn.active-danger { background: var(--danger); color: #fff; }
-
         #chat-send-btn { display: none; flex-shrink: 0; }
-
         /* Search */
         .search-bar {
             width: 100%; padding: 10px 14px; margin-bottom: 14px;
@@ -438,7 +414,6 @@
             box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
         .search-bar::placeholder { color: var(--text-light); }
-
         /* ─── MODALS ─── */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -494,7 +469,6 @@
             display: flex; gap: 8px;
         }
         .modal-footer .btn { flex: 1; justify-content: center; }
-
         /* Modal Configuración Full Screen */
         #config-modal .modal {
             width: 100%;
@@ -509,7 +483,6 @@
             flex: 1;
             overflow-y: auto;
         }
-
         /* ─── STARTUP SCREEN ─── */
         .startup-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -548,7 +521,6 @@
         .recent-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
         .recent-btn-clear { color: var(--danger) !important; margin-top: 6px; }
         .recent-btn-clear:hover { background: #fef2f2 !important; border-color: var(--danger) !important; color: var(--danger) !important; }
-
         /* ─── TOAST ─── */
         .toast {
             position: fixed; bottom: 22px; right: 22px;
@@ -563,7 +535,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .toast.show { opacity: 1; transform: translateY(0); }
-
         /* ─── COPY MODAL ─── */
         .checkbox-list {
             display: flex; flex-direction: column; gap: 5px;
@@ -576,7 +547,6 @@
             padding: 5px 6px; cursor: pointer; border-radius: 4px;
         }
         .checkbox-item:hover { background: var(--bg); }
-
         /* ─── AI CHAT BOX ─── */
         #ai-assistant-box {
             background: var(--surface); padding: 18px 24px;
@@ -594,19 +564,16 @@
         }
         #ai-assistant-box .chat-input-row { display: flex; gap: 8px; }
         #ai-assistant-box .form-input { border-color: var(--border); background: var(--bg); }
-
         #empty-state, #empty-state-excel { text-align: center; padding: 48px; display: none; }
         #empty-state p, #empty-state-excel p {
             font-family: 'Barlow Condensed', "Arial Narrow", sans-serif;
             font-size: 13px; letter-spacing: 0.1em;
             text-transform: uppercase; color: var(--text-light);
         }
-
         small {
             font-size: 11px; color: var(--text-light);
             display: block; margin-top: 3px;
         }
-
         @media (max-width: 640px) {
             .app-header-inner { padding: 0 12px; }
             .content-wrapper { padding: 14px 12px 36px; }
@@ -620,7 +587,6 @@
     </style>
 </head>
 <body>
-
     <div id="startup-screen" class="startup-screen" style="display: none;">
         <div class="startup-card">
             <h2>Select Context</h2>
@@ -636,9 +602,7 @@
             </div>
         </div>
     </div>
-
     <div id="app-container">
-
         <div class="app-header">
             <div class="app-header-inner">
                 <div class="header-info">
@@ -651,9 +615,7 @@
                 </div>
             </div>
         </div>
-
         <div class="content-wrapper">
-
             <div id="list-view" class="view-section active">
                 <div class="search-bar-row">
                     <div class="pill-toggle" id="sync-toggle-group">
@@ -671,21 +633,17 @@
                     <input type="text" class="search-bar" id="search-input" placeholder="Search records...">
                     <button class="btn" id="chat-send-btn">Send</button>
                 </div>
-
                 <div id="filter-container" class="filter-section"></div>
-
                 <div class="list-tabs">
                     <button class="list-tab active" data-list-tab="kpis">KPIs</button>
                     <button class="list-tab" data-list-tab="data">LIST</button>
                     <button class="list-tab" data-list-tab="excel">EXCEL</button>
                     <div id="record-tabs-container" style="display:contents;"></div>
                 </div>
-
                 <div id="list-tab-kpis">
                     <div class="kpi-container" id="kpi-metrics-container"></div>
                     <div class="kpi-container" id="kpi-dist-container" style="margin-bottom: 20px;"></div>
                 </div>
-
                 <div id="list-tab-data" style="display: none;">
                     <div class="table-container">
                         <table id="data-table">
@@ -697,7 +655,6 @@
                         <p>No records found locally.</p>
                     </div>
                 </div>
-
                 <div id="list-tab-excel" style="display: none;">
                     <div class="table-container">
                         <table id="excel-table">
@@ -709,7 +666,6 @@
                         <p>No records found locally.</p>
                     </div>
                 </div>
-
                 <div id="list-tab-record" style="display: none;">
                     <div id="record-tab-edit-panel">
                         <div class="form-card">
@@ -744,15 +700,11 @@
                     </div>
                 </div>
             </div>
-
             <div id="detail-view" class="view-section"></div>
             <div id="edit-view" class="view-section"></div>
-
         </div>
     </div>
-
     <input type="file" id="file-import-input" accept=".csv" style="display: none;">
-
     <div class="overlay" id="config-modal">
         <div class="modal">
             <div class="modal-header">
@@ -760,7 +712,6 @@
                 <button class="btn btn-info btn-sm" id="share-config-btn">Share Link 🔗</button>
             </div>
             <p class="modal-context-line">Context: <b><span id="modal-context"></span></b></p>
-
             <div class="modal-tabs">
                 <button class="modal-tab active" data-tab="general">General</button>
                 <button class="modal-tab" data-tab="cloud">Cloud</button>
@@ -768,7 +719,6 @@
                 <button class="modal-tab" data-tab="ai">AI</button>
                 <button class="modal-tab" data-tab="backup">Backup</button>
             </div>
-
             <div class="modal-tab-panel" id="tab-general">
                 <div class="form-group">
                     <label class="form-label">Default Mode</label>
@@ -785,7 +735,6 @@
                     </select>
                 </div>
             </div>
-
             <div class="modal-tab-panel" id="tab-cloud" style="display:none;">
                 <div class="form-group">
                     <label class="form-label">Global JSONBin API Key</label>
@@ -797,7 +746,6 @@
                     <input type="text" class="form-input" id="conf-bin-id" placeholder="65a...">
                 </div>
             </div>
-
             <div class="modal-tab-panel" id="tab-schema" style="display:none;">
                 <p style="font-size:11px; color:var(--text-light); margin-bottom:10px;">Drag ☰ to reorder fields.</p>
                 <div id="schema-list" class="schema-list"></div>
@@ -856,7 +804,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="modal-tab-panel" id="tab-ai" style="display:none;">
                 <div class="form-group">
                     <label class="form-label">Gemini API Key</label>
@@ -881,7 +828,6 @@
                     <textarea class="form-input" id="conf-ai-ctx-list" rows="2"></textarea>
                 </div>
             </div>
-
             <div class="modal-tab-panel" id="tab-backup" style="display:none;">
                 <div class="form-group" style="flex-direction: column; align-items: flex-start;">
                     <label class="form-label" style="margin-bottom: 8px;">Last Backup</label>
@@ -895,7 +841,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="modal-footer">
                 <button class="btn" id="cancel-config">Close</button>
                 <button class="btn btn-primary" id="save-config">Save Config</button>
@@ -924,7 +869,6 @@
             </div>
         </div>
     </div>
-
     <div class="overlay" id="copy-modal">
         <div class="modal">
             <div class="modal-header">
@@ -940,9 +884,7 @@
             </div>
         </div>
     </div>
-
     <div class="toast" id="toast">Message</div>
-
     <script>
         class ContextApp {
             constructor() {
@@ -967,12 +909,10 @@
                 this.syncDebounceTimer = null;
                 this.init();
             }
-
             debounceSync() {
                 clearTimeout(this.syncDebounceTimer);
                 this.syncDebounceTimer = setTimeout(() => this.mergeAndSync(), 5000);
             }
-
             // ─── Helper to compute checklist completion percentage ───
             calculateChecklistPct(value) {
                 const lines = (value || '').split('\n').filter(l => l.trim());
@@ -980,12 +920,10 @@
                 const completed = lines.filter(l => l.trim().startsWith('-')).length;
                 return Math.round((completed / lines.length) * 100) + '%';
             }
-
             init() {
                 const params = new URLSearchParams(window.location.search);
                 const urlContext = params.get('context');
                 const importBin = params.get('bin-id');
-
                 if (urlContext) {
                     if (importBin) {
                         this.context = urlContext;
@@ -999,7 +937,6 @@
                     this.showStartupScreen();
                 }
             }
-
             showStartupScreen() {
                 const screen = document.getElementById('startup-screen');
                 const container = document.getElementById('app-container');
@@ -1007,14 +944,12 @@
                 const btn = document.getElementById('startup-btn');
                 const createBtn = document.getElementById('startup-create-btn');
                 const clearBtn = document.getElementById('clear-context-btn');
-
                 document.title = 'DATA';
                 container.style.display = 'none';
                 screen.style.display = 'flex';
                 input.value = '';
                 input.focus();
                 this.renderRecents();
-
                 const handleStart = () => {
                     const val = input.value.trim().toUpperCase();
                     if (val) this.switchUrlAndLoad(val, 'load');
@@ -1023,17 +958,14 @@
                     const val = input.value.trim().toUpperCase();
                     if (val) this.switchUrlAndLoad(val, 'create');
                 };
-
                 btn.onclick = handleStart;
                 createBtn.onclick = handleCreate;
                 input.onkeypress = (e) => { if (e.key === 'Enter') handleStart(); };
-
                 clearBtn.onclick = () => {
                     const val = input.value.trim().toUpperCase();
                     if (val) this.clearSpecificContext(val);
                 };
             }
-
             clearSpecificContext(contextName) {
                 const prefix = `ctx_${contextName}_`;
                 const keysToRemove = [];
@@ -1044,24 +976,19 @@
                     }
                 }
                 keysToRemove.forEach(k => localStorage.removeItem(k));
-
                 let recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
                 recents = recents.filter(c => c !== contextName);
                 localStorage.setItem(this.RECENT_KEY, JSON.stringify(recents));
-
                 document.getElementById('startup-input').value = '';
                 this.renderRecents();
-
                 const newUrl = new URL(window.location);
                 if (newUrl.searchParams.get('context') === contextName) {
                     newUrl.searchParams.delete('context');
                     window.history.replaceState({}, '', newUrl);
                     this.context = null;
                 }
-
                 this.showToast('Context cleared');
             }
-
             renderRecents() {
                 const recentList = document.getElementById('recent-list');
                 const recentArea = document.getElementById('recent-area');
@@ -1072,9 +999,7 @@
                 const clearHtml = `<button class="btn recent-btn recent-btn-clear" onclick="app.clearRecents()">Clear History</button>`;
                 recentList.innerHTML = htmlButtons + clearHtml;
             }
-
             clearRecents() { localStorage.removeItem(this.RECENT_KEY); this.renderRecents(); }
-
             addToRecents(context) {
                 let recents = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]');
                 recents = recents.filter(c => c !== context);
@@ -1082,7 +1007,6 @@
                 recents = recents.slice(0, 5);
                 localStorage.setItem(this.RECENT_KEY, JSON.stringify(recents));
             }
-
             switchUrlAndLoad(val, action = 'load') {
                 const screen = document.getElementById('startup-screen');
                 const newUrl = new URL(window.location);
@@ -1091,7 +1015,6 @@
                 screen.style.display = 'none';
                 this.loadContext(val, action);
             }
-
             loadContext(contextName, action = 'load') {
                 this.context = contextName;
                 this.addToRecents(this.context);
@@ -1100,11 +1023,9 @@
                 document.getElementById('app-title').textContent = this.context;
                 document.getElementById('app-container').style.display = 'block';
                 this.db = { schema: [], items: [], schemaModified: new Date().toISOString() };
-
                 this.openRecords = [];
                 this.activeRecordId = null;
                 this.renderRecordTabs();
-
                 const defMode = localStorage.getItem(this.getStorageKey('default_mode')) || 'edit';
                 const defTab = localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis';
                 this.viewMode = localStorage.getItem(this.getStorageKey('view_mode')) || defMode;
@@ -1115,13 +1036,11 @@
                 this.applyMode();
                 this.renderFilters();
                 this.renderTable();
-
                 const hasGeminiKey = !!localStorage.getItem('global_gemini_api_key');
                 document.getElementById('search-mode-toggle').style.display = hasGeminiKey ? 'flex' : 'none';
                 if (!hasGeminiKey) {
                     this.setSearchChatMode('search');
                 }
-
                 if (this.activeRecordId) {
                     this.renderRecordTabs();
                     if (this.activeRecordId === '__new__') {
@@ -1133,7 +1052,6 @@
                 } else {
                     this.switchListTab(defTab);
                 }
-
                 const globalKey = localStorage.getItem(this.GLOBAL_API_KEY);
                 const hasBinId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!globalKey) {
@@ -1141,25 +1059,19 @@
                     else { this.openConfig(); this.showToast('Please configure your Global API Key'); }
                 } else { this.checkSyncReady(action); }
             }
-
             getStorageKey(key) { return `ctx_${this.context}_${key}`; }
-
             bindEvents() {
                 if (this.eventsBound) return;
                 this.eventsBound = true;
-
                 document.getElementById('app-title').addEventListener('click', () => this.showStartupScreen());
-
                 document.getElementById('sync-on-btn').addEventListener('click', () => this.setSyncState(true));
                 document.getElementById('sync-off-btn').addEventListener('click', () => this.setSyncState(false));
-
                 document.getElementById('toggle-edit-btn').addEventListener('click', () => {
                     if (this.viewMode !== 'edit') this.toggleMode();
                 });
                 document.getElementById('toggle-view-btn').addEventListener('click', () => {
                     if (this.viewMode !== 'view') this.toggleMode();
                 });
-
                 document.getElementById('detail-back-btn').addEventListener('click', () => this.showView('list'));
                 document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
                 document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
@@ -1175,19 +1087,15 @@
                 document.getElementById('schema-add-btn').addEventListener('click', () => this.addOrUpdateSchemaField());
                 document.getElementById('schema-cancel-edit-btn').addEventListener('click', () => this.resetSchemaForm());
                 document.getElementById('schema-to-selector-btn').addEventListener('click', () => this.convertToSelector());
-
                 document.getElementById('copy-clipboard-btn').addEventListener('click', () => this.openCopyModal());
                 document.getElementById('cancel-copy').addEventListener('click', () => document.getElementById('copy-modal').classList.remove('show'));
                 document.getElementById('confirm-copy').addEventListener('click', () => this.executeCopy());
-
                 document.querySelectorAll('.list-tab[data-list-tab="kpis"], .list-tab[data-list-tab="data"], .list-tab[data-list-tab="excel"]').forEach(tab => {
                     tab.addEventListener('click', () => this.switchListTab(tab.dataset.listTab));
                 });
-
                 document.getElementById('toggle-search-btn').addEventListener('click', () => this.setSearchChatMode('search'));
                 document.getElementById('toggle-chat-btn').addEventListener('click', () => this.setSearchChatMode('chat'));
                 document.getElementById('chat-send-btn').addEventListener('click', () => this.autoFillWithAI());
-
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         if (document.activeElement.id === 'search-input' && this.searchChatMode === 'chat') {
@@ -1199,10 +1107,8 @@
                         }
                     }
                 });
-
                 document.getElementById('save-token-btn').addEventListener('click', () => this.saveQuickToken());
                 document.getElementById('cancel-token').addEventListener('click', () => document.getElementById('token-modal').classList.remove('show'));
-
                 document.getElementById('schema-new-type').addEventListener('change', (e) => {
                     const type = e.target.value;
                     document.getElementById('schema-options-row').classList.toggle('show', type === 'select');
@@ -1211,14 +1117,12 @@
                     document.getElementById('schema-new-kpiop').style.display = type === 'number' ? 'inline-block' : 'none';
                     document.getElementById('schema-pct-label').style.display = type === 'checklist' ? 'flex' : 'none';
                 });
-
                 document.getElementById('search-input').addEventListener('input', (e) => {
                     if (this.searchChatMode === 'search') {
                         this.renderTable(e.target.value);
                         this.renderFilters();
                     }
                 });
-
                 document.querySelectorAll('#config-modal .modal-tab').forEach(tab => {
                     tab.addEventListener('click', () => {
                         document.querySelectorAll('#config-modal .modal-tab').forEach(t => t.classList.remove('active'));
@@ -1230,6 +1134,7 @@
             }
 
             setSyncState(isEnabled) {
+                const wasOff = this.syncEnabled === false;
                 this.syncEnabled = isEnabled;
                 const btnOn = document.getElementById('sync-on-btn');
                 const btnOff = document.getElementById('sync-off-btn');
@@ -1241,8 +1146,11 @@
                     btnOff.classList.add('active-danger');
                 }
                 this.updateSyncButton('idle');
+                // Push pending local changes immediately when going Off → On
+                if (isEnabled && wasOff) {
+                    this.mergeAndSync();
+                }
             }
-
             openTokenModal() {
                 this.tokenModalMode = 'apikey';
                 const modal = document.getElementById('token-modal');
@@ -1256,7 +1164,6 @@
                 modal.classList.add('show');
                 input.focus();
             }
-
             openBinModal() {
                 this.tokenModalMode = 'binid';
                 const modal = document.getElementById('token-modal');
@@ -1270,7 +1177,6 @@
                 modal.classList.add('show');
                 input.focus();
             }
-
             saveQuickToken() {
                 const val = document.getElementById('quick-api-key').value.trim();
                 if (val) {
@@ -1289,7 +1195,6 @@
                     this.showToast('Please enter a value'); 
                 }
             }
-
             openCopyModal() {
                 const modal = document.getElementById('copy-modal');
                 const list = document.getElementById('copy-columns-list');
@@ -1307,7 +1212,6 @@
                 modal.classList.add('show');
                 document.getElementById('confirm-copy').focus();
             }
-
             checkFilterMatch(itemVal, filterVal) {
                 if (typeof filterVal === 'string' && filterVal.startsWith('RANGO:')) {
                     const parts = filterVal.split(':');
@@ -1320,7 +1224,6 @@
                 }
                 return itemVal === filterVal;
             }
-
             executeCopy() {
                 const list = document.getElementById('copy-columns-list');
                 const checkboxes = list.querySelectorAll('input[type="checkbox"]:checked');
@@ -1351,11 +1254,9 @@
                     document.getElementById('copy-modal').classList.remove('show');
                 }).catch(() => this.showToast('Failed to copy'));
             }
-
             updateSyncButton(state) {
                 const header = document.querySelector('.app-header');
                 const isSyncDisabled = !this.syncEnabled;
-
                 const setIdleColor = () => {
                     if (isSyncDisabled) {
                         header.style.background = 'black';
@@ -1363,7 +1264,6 @@
                         header.style.background = 'darkgreen';
                     }
                 };
-
                 if (state === 'loading') {
                     header.style.background = 'darkorange';
                 } else if (state === 'error') {
@@ -1374,7 +1274,6 @@
                 } else {
                     setIdleColor();
                 }
-
                 const btn = document.getElementById('refresh-btn');
                 if (!btn) return;
                 btn.className = 'btn';
@@ -1383,7 +1282,6 @@
                 else if (isSyncDisabled) { btn.classList.add('btn-sync-off'); }
                 else { btn.classList.add(state === 'error' ? 'btn-sync-error' : 'btn-sync-success'); }
             }
-
             loadLocalData() {
                 const sRaw = localStorage.getItem(this.getStorageKey('schema'));
                 const iRaw = localStorage.getItem(this.getStorageKey('items'));
@@ -1395,7 +1293,6 @@
                 this.db.items = loadedItems.filter(i => i && i.id && i.name);
                 this.updateKPIs(this.db.items);
             }
-
             saveLocalData() {
                 localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
                 localStorage.setItem(this.getStorageKey('items'), JSON.stringify(this.db.items));
@@ -1418,22 +1315,62 @@
                     if (meta.geminiModel) localStorage.setItem(this.getStorageKey('gemini_model'), meta.geminiModel);
                     if (meta.aiGlobal !== undefined) localStorage.setItem(this.getStorageKey('ai_global'), meta.aiGlobal);
                     if (meta.aiEdit !== undefined) localStorage.setItem(this.getStorageKey('ai_edit'), meta.aiEdit);
-                    if (meta.schemaModified) this.db.schemaModified = meta.schemaModified;
-                    
                     if (meta.lastBackup) this.lastBackup = meta.lastBackup;
-                    if (Array.isArray(record)) { this.db.items = record.filter(i => i && i.id && i.name); }
-                    else {
-                        this.db.schema = record.schema || [];
-                        this.db.items = (record.items || []).filter(i => i && i.id && i.name);
+
+                    // ── Merge items by id + lastModified (last-write-wins per record) ──
+                    const cloudItems = Array.isArray(record) ? record : (record.items || []);
+                    const cloudSchema = record.schema || [];
+                    const cloudSchemaModified = meta.schemaModified || '';
+
+                    const mergedItemsMap = new Map();
+                    cloudItems.forEach(ci => { if (ci && ci.id) mergedItemsMap.set(ci.id, ci); });
+                    let localOnlyOrNewer = false;
+                    this.db.items.forEach(li => {
+                        if (!li || !li.id) return;
+                        const ci = mergedItemsMap.get(li.id);
+                        if (!ci) {
+                            // Local-only record (e.g. created while Sync Off) — preserve it
+                            mergedItemsMap.set(li.id, li);
+                            localOnlyOrNewer = true;
+                        } else {
+                            const lDate = new Date(li.lastModified || 0).getTime();
+                            const cDate = new Date(ci.lastModified || 0).getTime();
+                            if (lDate > cDate) {
+                                mergedItemsMap.set(li.id, li);
+                                localOnlyOrNewer = true;
+                            }
+                        }
+                    });
+                    const mergedItems = Array.from(mergedItemsMap.values()).filter(i => i && i.id && i.name);
+
+                    // ── Merge schema using schemaModified timestamp (newest wins) ──
+                    const lSchemaTime = new Date(this.db.schemaModified || 0).getTime();
+                    const cSchemaTime = new Date(cloudSchemaModified || 0).getTime();
+                    let mergedSchema, mergedSchemaModified;
+                    if (cSchemaTime > lSchemaTime) {
+                        mergedSchema = cloudSchema;
+                        mergedSchemaModified = cloudSchemaModified;
+                    } else {
+                        mergedSchema = this.db.schema;
+                        mergedSchemaModified = this.db.schemaModified || new Date().toISOString();
+                        if (lSchemaTime > cSchemaTime) localOnlyOrNewer = true;
                     }
-                    this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
-                    this.saveLocalData(); 
-                    this.renderFilters(); 
+
+                    this.db.items = mergedItems;
+                    this.db.schema = (mergedSchema || []).filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
+                    this.db.schemaModified = mergedSchemaModified;
+
+                    this.saveLocalData();
+                    this.renderFilters();
                     this.renderTable(document.getElementById('search-input').value);
                     this.updateSyncButton('success');
+
+                    // If we discovered local-only data while merging, push it back up
+                    if (localOnlyOrNewer && this.syncEnabled) {
+                        this.debounceSync();
+                    }
                 } catch (e) { this.updateSyncButton('error'); this.showToast('Auth error'); }
             }
-
             triggerDailyBackup(payload) {
                 const today = new Date().toISOString().slice(0, 10);
                 if (payload.meta.lastBackup === today) return;
@@ -1442,18 +1379,14 @@
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${schemaName}-${today}-backup.json`; a.click();
                 payload.meta.lastBackup = today;
             }
-
             async mergeAndSync() {
                 if (!this.syncEnabled) {
                     this.saveLocalData();
                     return;
                 }
-
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY), binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
-
                 this.updateSyncButton('loading');
-
                 let cloudData;
                 try {
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Access-Key': apiKey } });
@@ -1463,15 +1396,12 @@
                     this.updateSyncButton('error');
                     return;
                 }
-
                 const cloudRecord = cloudData.record || {};
                 const cloudItems = Array.isArray(cloudRecord) ? cloudRecord : (cloudRecord.items || []);
                 const cloudSchema = cloudRecord.schema || [];
                 const cloudSchemaModified = (cloudRecord.meta && cloudRecord.meta.schemaModified) || '';
-
                 const mergedItemsMap = new Map();
                 cloudItems.forEach(ci => mergedItemsMap.set(ci.id, ci));
-
                 this.db.items.forEach(li => {
                     const ci = mergedItemsMap.get(li.id);
                     if (!ci) {
@@ -1485,17 +1415,14 @@
                     }
                 });
                 const mergedItems = Array.from(mergedItemsMap.values());
-
                 let mergedSchema = this.db.schema;
                 let mergedSchemaModified = this.db.schemaModified || new Date().toISOString();
                 const lSchemaTime = new Date(this.db.schemaModified || 0).getTime();
                 const cSchemaTime = new Date(cloudSchemaModified || 0).getTime();
-
                 if (cSchemaTime > lSchemaTime) {
                     mergedSchema = cloudSchema;
                     mergedSchemaModified = cloudSchemaModified;
                 }
-
                 const payload = {
                     meta: { 
                         defaultMode: localStorage.getItem(this.getStorageKey('default_mode')) || 'edit',
@@ -1529,7 +1456,6 @@
                     this.updateSyncButton('error'); 
                 }
             }
-
             async createBin(apiKey) {
                 if (this.isProcessing) return; this.isProcessing = true;
                 this.updateSyncButton('loading');
@@ -1543,7 +1469,6 @@
                     this.showToast('Database Created!'); this.isProcessing = false; this.fetchCloudData();
                 } catch (e) { this.updateSyncButton('error'); }
             }
-
             checkSyncReady(action = 'load') {
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY), binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey) return;
@@ -1557,7 +1482,6 @@
                     this.fetchCloudData(); 
                 }
             }
-
             shareConfig() {
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!binId) { this.showToast('No Cloud Bin'); return; }
@@ -1565,7 +1489,6 @@
                 url.searchParams.set('context', this.context); url.searchParams.set('bin-id', binId);
                 navigator.clipboard.writeText(url.toString()).then(() => this.showToast('Secure link copied!'));
             }
-
             renderFilters() {
                 const container = document.getElementById('filter-container'), fields = this.db.schema.filter(f => f.filterable);
                 if (fields.length === 0) { container.style.display = 'none'; return; }
@@ -1641,7 +1564,6 @@
                     body.appendChild(group);
                 });
             }
-
             renderSchemaList() {
                 const list = document.getElementById('schema-list');
                 if (this.db.schema.length === 0) { list.innerHTML = '<small>No schema defined.</small>'; return; }
@@ -1663,12 +1585,10 @@
                     if (field.type === 'select' && field.kpiMode === 'dist') meta += ` (DIST)`;
                     if (field.type === 'checklist' && field.showPctInList) meta += ` (PCT)`;
                     meta += ` · ${field.showInList ? 'VISIBLE' : 'HIDDEN'} · ${field.filterable ? 'FILTER' : 'NO FILTER'}`;
-
                     div.innerHTML = `<div class="schema-content-wrapper"><span class="schema-drag-handle">☰</span><div class="schema-info"><span class="schema-name">${field.key}</span><span class="schema-meta">${meta}</span></div></div><div class="schema-actions"><span class="schema-icon edit" onclick="app.editSchemaField('${field.key}')">✎</span><span class="schema-icon delete" onclick="app.removeSchemaField('${field.key}')">✕</span></div>`;
                     list.appendChild(div);
                 });
             }
-
             editSchemaField(key) {
                 const field = this.db.schema.find(f => f.key === key); if (!field) return;
                 this.editingFieldKey = key; document.getElementById('schema-new-name').value = field.key;
@@ -1687,13 +1607,11 @@
                 document.getElementById('schema-link-row').classList.toggle('show', field.type === 'link');
                 document.getElementById('schema-new-kpiop').style.display = field.type === 'number' ? 'inline-block' : 'none';
                 document.getElementById('schema-pct-label').style.display = field.type === 'checklist' ? 'flex' : 'none';
-
                 document.getElementById('schema-box-title').textContent = 'Edit Field';
                 document.getElementById('schema-add-btn').textContent = 'Update';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'inline-block';
                 document.getElementById('schema-to-selector-btn').style.display = (field.type === 'text') ? 'inline-block' : 'none';
             }
-
             convertToSelector() {
                 if (!this.editingFieldKey) return;
                 const uniqueValues = new Set();
@@ -1712,7 +1630,6 @@
                 document.getElementById('schema-pct-label').style.display = 'none';
                 this.showToast('Ready! Click Update to save.');
             }
-
             resetSchemaForm() {
                 this.editingFieldKey = null; document.getElementById('schema-new-name').value = '';
                 document.getElementById('schema-new-type').value = 'text';
@@ -1733,7 +1650,6 @@
                 document.getElementById('schema-cancel-edit-btn').style.display = 'none';
                 document.getElementById('schema-to-selector-btn').style.display = 'none';
             }
-
             addOrUpdateSchemaField() {
                 const key = document.getElementById('schema-new-name').value.trim(), type = document.getElementById('schema-new-type').value;
                 if (!key) return;
@@ -1748,7 +1664,6 @@
                 } else if (type === 'select' && isKpiChecked) {
                     fieldDef.kpiMode = 'dist';
                 }
-
                 if (this.editingFieldKey) {
                     const idx = this.db.schema.findIndex(f => f.key === this.editingFieldKey);
                     this.db.schema[idx] = fieldDef;
@@ -1757,16 +1672,13 @@
                 this.saveSchema(); this.renderSchemaList(); this.resetSchemaForm(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value);
                 if (this.syncEnabled) this.debounceSync();
             }
-
             removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncEnabled) this.mergeAndSync(); } }
-
             saveSchema() { 
                 this.db.schemaModified = new Date().toISOString();
                 localStorage.setItem(this.getStorageKey('schemaModified'), this.db.schemaModified);
                 localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema)); 
                 this.renderTable(document.getElementById('search-input').value); 
             }
-
             updateKPIs(dataSet) {
                 const data = (dataSet || this.db.items).filter(i => i && i.id && i.name && !i.deleted);
                 const metricsContainer = document.getElementById('kpi-metrics-container');
@@ -1776,7 +1688,6 @@
                 distContainer.innerHTML = '';
                 
                 let hasDist = false;
-
                 this.db.schema.filter(f => f.kpiMode).forEach(field => {
                     if (field.type === 'number') {
                         const values = data.map(i => parseFloat(i[field.key])).filter(v => !isNaN(v));
@@ -1804,10 +1715,8 @@
                         distContainer.insertAdjacentHTML('beforeend', html);
                     }
                 });
-
                 distContainer.style.display = hasDist ? 'flex' : 'none';
             }
-
             exportCSV() {
                 const schemaFields = this.db.schema.filter(f => f.type !== 'link');
                 const headers = ['name', ...schemaFields.map(f => f.key)], rows = [headers.map(h => `"${h}"`).join(';')];
@@ -1815,7 +1724,6 @@
                 const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${this.context}_data.csv`; a.click();
             }
-
             importCSV(event) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -1849,7 +1757,6 @@
                 };
                 reader.readAsText(event.target.files[0]);
             }
-
             switchListTab(name) {
                 this.activeListTab = name;
                 document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
@@ -1860,12 +1767,10 @@
                 document.getElementById('list-tab-excel').style.display = name === 'excel' ? 'block' : 'none';
                 document.getElementById('list-tab-record').style.display = name === 'record' ? 'block' : 'none';
             }
-
             showView(viewName) {
                 if (viewName === 'list') { this.closeRecord(this.activeRecordId); }
                 document.querySelector('.header-actions').style.display = 'flex';
             }
-
             openRecord(id) {
                 const name = id === '__new__' ? 'New' : (this.db.items.find(i => i.id === id)?.name || '?');
                 const existing = this.openRecords.find(r => r.id === id);
@@ -1878,7 +1783,6 @@
                 this.renderRecordTabs();
                 document.querySelector('.header-actions').style.display = 'flex';
             }
-
             renderRecordTabs() {
                 const container = document.getElementById('record-tabs-container');
                 container.innerHTML = '';
@@ -1896,7 +1800,6 @@
                     container.appendChild(btn);
                 });
             }
-
             closeRecord(id) {
                 if (!id) { this.renderRecordTabs(); this.switchListTab('data'); document.querySelector('.header-actions').style.display = 'flex'; return; }
                 this.openRecords = this.openRecords.filter(r => r.id !== id);
@@ -1913,13 +1816,11 @@
                 } else { this.renderRecordTabs(); }
                 document.querySelector('.header-actions').style.display = 'flex';
             }
-
             handleSort(key) {
                 if (this.sortColumn === key) { this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'; }
                 else { this.sortColumn = key; this.sortDirection = 'asc'; }
                 this.renderTable(document.getElementById('search-input').value);
             }
-
             renderTable(filterText = '') {
                 const tbody = document.querySelector('#data-table tbody'), thead = document.querySelector('#data-table thead');
                 let items = this.db.items.filter(i => {
@@ -1956,7 +1857,6 @@
                 
                 this.renderExcelTable(filterText);
             }
-
             renderExcelTable(filterText = '') {
                 const tbody = document.querySelector('#excel-table tbody');
                 const thead = document.querySelector('#excel-table thead');
@@ -2006,7 +1906,6 @@
                     </tr>`;
                 }).join('');
             }
-
             updateExcelCell(id, key, value) {
                 const item = this.db.items.find(i => i.id === id);
                 if (item) {
@@ -2016,11 +1915,8 @@
                     if (this.syncEnabled) this.debounceSync();
                 }
             }
-
             openEditor() { this.currentItemId = null; document.getElementById('form-title').textContent = 'New Record'; document.getElementById('field-name').value = ''; document.getElementById('delete-btn').style.display = 'none'; this.renderDynamicFormFields({}); this.toggleAIAssistantBox(); this.openRecord('__new__'); }
-
             editItem(id) { const item = this.db.items.find(i => i.id === id); if (!item) return; this.currentItemId = id; document.getElementById('form-title').textContent = 'Edit Record'; document.getElementById('field-name').value = item.name; document.getElementById('delete-btn').style.display = 'block'; this.renderDynamicFormFields(item); this.toggleAIAssistantBox(); this.openRecord(id); }
-
             renderDynamicFormFields(vals) {
                 const container = document.getElementById('dynamic-fields-container'); container.innerHTML = '';
                 this.db.schema.forEach(f => {
@@ -2033,7 +1929,6 @@
                     el.className = 'form-input'; el.dataset.key = f.key; group.appendChild(el); container.appendChild(group);
                 });
             }
-
             saveItem(e) {
                 e.preventDefault(); const name = document.getElementById('field-name').value.trim().toUpperCase();
                 const isNew = !this.currentItemId;
@@ -2055,7 +1950,6 @@
                 this.renderTable(document.getElementById('search-input').value);
                 if (this.syncEnabled) this.debounceSync();
             }
-
             deleteItem() { 
                 if (this.currentItemId && confirm('Delete?')) { 
                     const itemIndex = this.db.items.findIndex(i => i.id === this.currentItemId);
@@ -2071,7 +1965,6 @@
                     }
                 } 
             }
-
             async openConfig() {
                 const modal = document.getElementById('config-modal'); document.getElementById('modal-context').textContent = this.context;
                 document.getElementById('conf-api-key').value = localStorage.getItem(this.GLOBAL_API_KEY) || '';
@@ -2083,9 +1976,7 @@
                 document.getElementById('conf-ai-ctx-edit').value = localStorage.getItem(this.getStorageKey('ai_edit')) || '';
                 document.getElementById('conf-ai-ctx-list').value = localStorage.getItem(this.getStorageKey('ai_list')) || '';
                 document.getElementById('conf-last-backup').textContent = this.lastBackup || 'Never';
-
                 this.renderSchemaList(); modal.classList.add('show');
-
                 // Load Gemini Models
                 const geminiKey = localStorage.getItem('global_gemini_api_key');
                 const modelSelect = document.getElementById('conf-gemini-model');
@@ -2106,7 +1997,6 @@
                     modelSelect.innerHTML = '<option value="">No API Key</option>';
                 }
             }
-
             saveConfiguration() {
                 const apiKey = document.getElementById('conf-api-key').value.trim();
                 const binId = document.getElementById('conf-bin-id').value.trim();
@@ -2121,9 +2011,7 @@
                 localStorage.setItem(this.getStorageKey('gemini_model'), document.getElementById('conf-gemini-model').value);
                 localStorage.setItem(this.getStorageKey('ai_global'), document.getElementById('conf-ai-ctx-global').value.trim());
                 localStorage.setItem(this.getStorageKey('ai_edit'), document.getElementById('conf-ai-ctx-edit').value.trim());
-
                 this.updateSyncButton('idle'); 
-
                 document.getElementById('config-modal').classList.remove('show'); this.showToast('Config Saved');
                 
                 if (binId !== oldBinId || !binId) {
@@ -2134,7 +2022,6 @@
                 
                 this.renderTable(document.getElementById('search-input').value);
             }
-
             toggleMode() {
                 this.viewMode = this.viewMode === 'edit' ? 'view' : 'edit';
                 this.applyMode();
@@ -2146,14 +2033,12 @@
                     else this.viewItem(this.activeRecordId);
                 }
             }
-
             applyMode() {
                 const isView = this.viewMode === 'view';
                 // Update pill toggle buttons
                 document.getElementById('toggle-edit-btn').classList.toggle('active', !isView);
                 document.getElementById('toggle-view-btn').classList.toggle('active', isView);
             }
-
             toggleChecklist(id, key, index) {
                 const item = this.db.items.find(i => i.id === id);
                 if (!item) return;
@@ -2170,7 +2055,6 @@
                     if (this.syncEnabled) this.debounceSync();
                 }
             }
-
             toggleAllChecklist(id, key, isChecked) {
                 const item = this.db.items.find(i => i.id === id);
                 if (!item) return;
@@ -2186,7 +2070,6 @@
                 if (this.syncEnabled) this.debounceSync();
                 this.viewItem(id); 
             }
-
             viewItem(id) {
                 const item = this.db.items.find(i => i.id === id); if (!item) return;
                 document.getElementById('detail-title').textContent = item.name; const container = document.getElementById('detail-fields-container'); container.innerHTML = '';
@@ -2220,7 +2103,6 @@
                 });
                 this.openRecord(id);
             }
-
             setSearchChatMode(mode) {
                 this.searchChatMode = mode;
                 const input = document.getElementById('search-input');
@@ -2232,25 +2114,21 @@
                 if (mode === 'search') { this.renderTable(''); this.renderFilters(); }
                 input.focus();
             }
-
             toggleAIAssistantBox() {
                 const hasKey = !!localStorage.getItem('global_gemini_api_key');
                 document.getElementById('search-mode-toggle').style.display = hasKey ? 'flex' : 'none';
                 if (!hasKey) this.setSearchChatMode('search');
                 document.getElementById('search-input').value = '';
             }
-
             async autoFillWithAI() {
                 const key = localStorage.getItem('global_gemini_api_key'), promptInput = document.getElementById('search-input'), btn = document.getElementById('chat-send-btn');
                 const model = localStorage.getItem(this.getStorageKey('gemini_model')) || 'models/gemini-2.0-flash';
                 const name = document.getElementById('field-name').value.trim();
                 if (!key) { this.showToast('Configure AI Key first'); return; }
                 if (!name) { this.showToast('Enter a NAME first'); return; }
-
                 const schemaKeys = this.db.schema.map(f => f.key);
                 const systemPrompt = `CONTEXT GLOBAL: ${localStorage.getItem(this.getStorageKey('ai_global'))}\nREGLAS: ${localStorage.getItem(this.getStorageKey('ai_edit'))}\nCAMPOS: ${this.db.schema.map(f => `"${f.key}" (${f.type}) instructions: ${f.aiRule}`).join(', ')}\nJSON STRUCTURE: {"datos": ${JSON.stringify(schemaKeys.reduce((a,k)=>({...a,[k]:""}),{}))}, "mensaje": "description"}. Solo JSON, no markdown.`;
                 const userPrompt = `ITEM: "${name}"\nCURRENT DATA: ${JSON.stringify(Array.from(document.querySelectorAll('#dynamic-fields-container .form-input')).reduce((a,el)=>({...a,[el.dataset.key]:el.value}),{}))}\nUSER ORDER: "${promptInput.value}"`;
-
                 btn.disabled = true; btn.textContent = '...';
                 try {
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
@@ -2264,7 +2142,6 @@
                     promptInput.value = '';
                 } catch (err) { this.showToast('AI Error'); } finally { btn.disabled = false; btn.textContent = 'Send'; }
             }
-
             showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4000); }
         }
         const app = new ContextApp();

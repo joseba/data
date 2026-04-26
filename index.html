@@ -399,6 +399,8 @@
         }
         .pill-toggle-btn.active { background: var(--primary); color: #fff; }
         .pill-toggle-btn.active-danger { background: var(--danger); color: #fff; }
+        .pill-toggle-btn.pill-new { background: var(--primary); color: #fff; }
+        .pill-toggle-btn.pill-new:hover { background: var(--primary-hover); }
         #chat-send-btn { display: none; flex-shrink: 0; }
         /* Search */
         .search-bar {
@@ -611,16 +613,18 @@
                 <div class="header-actions">
                     <button class="btn" id="copy-clipboard-btn" title="Copy visible data to clipboard">Copy</button>
                     <button class="btn" id="config-btn">Config</button>
-                    <button class="btn btn-primary" id="add-btn">New</button>
                 </div>
             </div>
         </div>
         <div class="content-wrapper">
             <div id="list-view" class="view-section active">
                 <div class="search-bar-row">
+                    <div class="pill-toggle">
+                        <button class="pill-toggle-btn pill-new" id="add-btn">New</button>
+                    </div>
                     <div class="pill-toggle" id="sync-toggle-group">
-                        <button class="pill-toggle-btn active" id="sync-on-btn">Sync On</button>
-                        <button class="pill-toggle-btn" id="sync-off-btn">Sync Off</button>
+                        <button class="pill-toggle-btn active" id="sync-on-btn">Cloud</button>
+                        <button class="pill-toggle-btn" id="sync-off-btn">Local</button>
                     </div>
                     <div class="pill-toggle" id="view-mode-toggle">
                         <button class="pill-toggle-btn active" id="toggle-edit-btn">Edit</button>
@@ -672,8 +676,9 @@
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                                 <h2 id="form-title">Edit Record</h2>
                                 <div style="display:flex;gap:7px;">
-                                    <button type="submit" form="item-form" class="btn btn-sm btn-primary" id="save-btn" onclick="app.saveAndClose=false">Save</button>
-                                    <button type="submit" form="item-form" class="btn btn-sm btn-primary" id="save-close-btn" onclick="app.saveAndClose=true">Save &amp; Close</button>
+                                    <button type="submit" form="item-form" class="btn btn-sm btn-primary" id="save-btn" onclick="app.saveAndClose=false; app.saveAndClone=false">Save</button>
+                                    <button type="submit" form="item-form" class="btn btn-sm btn-primary" id="save-close-btn" onclick="app.saveAndClose=true; app.saveAndClone=false">Save &amp; Close</button>
+                                    <button type="submit" form="item-form" class="btn btn-sm btn-primary" id="save-clone-btn" onclick="app.saveAndClose=false; app.saveAndClone=true">Save &amp; Clone</button>
                                     <button type="button" class="btn btn-sm btn-danger" id="delete-btn" style="display: none;">Delete</button>
                                     <button class="btn btn-sm" id="back-btn">Cancel</button>
                                 </div>
@@ -780,6 +785,9 @@
                                 <option value="avg">Avg</option>
                             </select>
                         </div>
+                    </div>
+                    <div id="schema-default-row" style="margin-top:7px; display:none;">
+                        <input type="text" class="form-input" id="schema-new-default" placeholder="Default Value (optional)" style="font-size:12px;">
                     </div>
                     <div style="margin-top:7px;">
                         <input type="text" class="form-input" id="schema-new-airule" placeholder="AI Field Context (e.g.: Extract year only)" style="font-size:12px;">
@@ -907,6 +915,8 @@
                 this.activeRecordId = null;
                 this.tokenModalMode = 'apikey';
                 this.syncDebounceTimer = null;
+                this.saveAndClose = false;
+                this.saveAndClone = false;
                 this.init();
             }
             debounceSync() {
@@ -919,6 +929,16 @@
                 if (lines.length === 0) return '0%';
                 const completed = lines.filter(l => l.trim().startsWith('-')).length;
                 return Math.round((completed / lines.length) * 100) + '%';
+            }
+            // ─── Helper to build initial values for a new record using schema defaults ───
+            getDefaultsForNewRecord() {
+                const initialValues = {};
+                this.db.schema.forEach(f => {
+                    if (['text', 'number', 'select'].includes(f.type) && f.defaultValue !== undefined && f.defaultValue !== '') {
+                        initialValues[f.key] = f.defaultValue;
+                    }
+                });
+                return initialValues;
             }
             init() {
                 const params = new URLSearchParams(window.location.search);
@@ -1116,6 +1136,7 @@
                     document.getElementById('schema-link-row').classList.toggle('show', type === 'link');
                     document.getElementById('schema-new-kpiop').style.display = type === 'number' ? 'inline-block' : 'none';
                     document.getElementById('schema-pct-label').style.display = type === 'checklist' ? 'flex' : 'none';
+                    document.getElementById('schema-default-row').style.display = ['text', 'number', 'select'].includes(type) ? '' : 'none';
                 });
                 document.getElementById('search-input').addEventListener('input', (e) => {
                     if (this.searchChatMode === 'search') {
@@ -1584,6 +1605,7 @@
                     if (field.type === 'number' && field.kpiMode) meta += ` (${field.kpiMode.toUpperCase()})`;
                     if (field.type === 'select' && field.kpiMode === 'dist') meta += ` (DIST)`;
                     if (field.type === 'checklist' && field.showPctInList) meta += ` (PCT)`;
+                    if (field.defaultValue) meta += ` · DEF: ${field.defaultValue}`;
                     meta += ` · ${field.showInList ? 'VISIBLE' : 'HIDDEN'} · ${field.filterable ? 'FILTER' : 'NO FILTER'}`;
                     div.innerHTML = `<div class="schema-content-wrapper"><span class="schema-drag-handle">☰</span><div class="schema-info"><span class="schema-name">${field.key}</span><span class="schema-meta">${meta}</span></div></div><div class="schema-actions"><span class="schema-icon edit" onclick="app.editSchemaField('${field.key}')">✎</span><span class="schema-icon delete" onclick="app.removeSchemaField('${field.key}')">✕</span></div>`;
                     list.appendChild(div);
@@ -1601,12 +1623,14 @@
                 document.getElementById('schema-new-kpiop').value = (field.kpiMode === 'avg' ? 'avg' : 'sum');
                 document.getElementById('schema-new-airule').value = field.aiRule || '';
                 document.getElementById('schema-new-pct').checked = !!field.showPctInList;
+                document.getElementById('schema-new-default').value = field.defaultValue || '';
                 
                 document.getElementById('schema-options-row').classList.toggle('show', field.type === 'select');
                 document.getElementById('schema-kpi-row').classList.toggle('show', field.type === 'number' || field.type === 'select');
                 document.getElementById('schema-link-row').classList.toggle('show', field.type === 'link');
                 document.getElementById('schema-new-kpiop').style.display = field.type === 'number' ? 'inline-block' : 'none';
                 document.getElementById('schema-pct-label').style.display = field.type === 'checklist' ? 'flex' : 'none';
+                document.getElementById('schema-default-row').style.display = ['text', 'number', 'select'].includes(field.type) ? '' : 'none';
                 document.getElementById('schema-box-title').textContent = 'Edit Field';
                 document.getElementById('schema-add-btn').textContent = 'Update';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'inline-block';
@@ -1628,6 +1652,7 @@
                 document.getElementById('schema-new-options').value = optionsArray.join(', ');
                 document.getElementById('schema-to-selector-btn').style.display = 'none';
                 document.getElementById('schema-pct-label').style.display = 'none';
+                document.getElementById('schema-default-row').style.display = '';
                 this.showToast('Ready! Click Update to save.');
             }
             resetSchemaForm() {
@@ -1641,10 +1666,12 @@
                 document.getElementById('schema-new-kpiop').value = 'sum';
                 document.getElementById('schema-new-airule').value = '';
                 document.getElementById('schema-new-pct').checked = false;
+                document.getElementById('schema-new-default').value = '';
                 document.getElementById('schema-options-row').classList.remove('show');
                 document.getElementById('schema-kpi-row').classList.remove('show');
                 document.getElementById('schema-link-row').classList.remove('show');
                 document.getElementById('schema-pct-label').style.display = 'none';
+                document.getElementById('schema-default-row').style.display = '';
                 document.getElementById('schema-box-title').textContent = 'Add Field';
                 document.getElementById('schema-add-btn').textContent = 'Add';
                 document.getElementById('schema-cancel-edit-btn').style.display = 'none';
@@ -1657,6 +1684,12 @@
                 if (type === 'select') fieldDef.options = document.getElementById('schema-new-options').value.split(',').map(s => s.trim()).filter(s => s);
                 if (type === 'link') fieldDef.baseUrl = document.getElementById('schema-new-baseurl').value.trim();
                 if (type === 'checklist') fieldDef.showPctInList = document.getElementById('schema-new-pct').checked;
+                
+                // Default Value (only for text, number, select)
+                const defaultVal = document.getElementById('schema-new-default').value.trim();
+                if (['text', 'number', 'select'].includes(type) && defaultVal) {
+                    fieldDef.defaultValue = defaultVal;
+                }
                 
                 const isKpiChecked = document.getElementById('schema-new-iskpi').checked;
                 if (type === 'number' && isKpiChecked) {
@@ -1915,7 +1948,17 @@
                     if (this.syncEnabled) this.debounceSync();
                 }
             }
-            openEditor() { this.currentItemId = null; document.getElementById('form-title').textContent = 'New Record'; document.getElementById('field-name').value = ''; document.getElementById('delete-btn').style.display = 'none'; this.renderDynamicFormFields({}); this.toggleAIAssistantBox(); this.openRecord('__new__'); }
+            openEditor() { 
+                this.currentItemId = null; 
+                document.getElementById('form-title').textContent = 'New Record'; 
+                document.getElementById('field-name').value = ''; 
+                document.getElementById('delete-btn').style.display = 'none'; 
+                // Apply schema defaults to the new record
+                const initialValues = this.getDefaultsForNewRecord();
+                this.renderDynamicFormFields(initialValues); 
+                this.toggleAIAssistantBox(); 
+                this.openRecord('__new__'); 
+            }
             editItem(id) { const item = this.db.items.find(i => i.id === id); if (!item) return; this.currentItemId = id; document.getElementById('form-title').textContent = 'Edit Record'; document.getElementById('field-name').value = item.name; document.getElementById('delete-btn').style.display = 'block'; this.renderDynamicFormFields(item); this.toggleAIAssistantBox(); this.openRecord(id); }
             renderDynamicFormFields(vals) {
                 const container = document.getElementById('dynamic-fields-container'); container.innerHTML = '';
@@ -1930,14 +1973,40 @@
                 });
             }
             saveItem(e) {
-                e.preventDefault(); const name = document.getElementById('field-name').value.trim().toUpperCase();
+                e.preventDefault(); 
+                const name = document.getElementById('field-name').value.trim().toUpperCase();
                 const isNew = !this.currentItemId;
                 let item = { id: this.currentItemId || Date.now().toString(), name, lastModified: new Date().toISOString() };
                 document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select').forEach(el => item[el.dataset.key] = el.value);
-                if (this.currentItemId) { this.db.items[this.db.items.findIndex(i => i.id === this.currentItemId)] = { ...this.db.items.find(i => i.id === this.currentItemId), ...item }; }
-                else { this.db.items.push(item); }
-                this.saveLocalData(); this.showToast('Saved');
-                if (this.saveAndClose) {
+                if (this.currentItemId) { 
+                    this.db.items[this.db.items.findIndex(i => i.id === this.currentItemId)] = { ...this.db.items.find(i => i.id === this.currentItemId), ...item }; 
+                }
+                else { 
+                    this.db.items.push(item); 
+                }
+                this.saveLocalData(); 
+                this.showToast('Saved');
+                
+                if (this.saveAndClone) {
+                    // Capture current values (snapshot of what we just saved)
+                    const clonedData = {};
+                    document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select').forEach(el => {
+                        clonedData[el.dataset.key] = el.value;
+                    });
+                    // Close just-saved tab (it's '__new__' if new, else item.id)
+                    this.closeRecord(isNew ? '__new__' : item.id);
+                    // Open a fresh editor preloaded with the cloned data (name empty)
+                    this.currentItemId = null;
+                    document.getElementById('form-title').textContent = 'New Record';
+                    document.getElementById('field-name').value = '';
+                    document.getElementById('delete-btn').style.display = 'none';
+                    this.renderDynamicFormFields(clonedData);
+                    this.toggleAIAssistantBox();
+                    this.openRecord('__new__');
+                    setTimeout(() => document.getElementById('field-name').focus(), 50);
+                    // Reset flag for next save
+                    this.saveAndClone = false;
+                } else if (this.saveAndClose) {
                     this.closeRecord(isNew ? '__new__' : item.id);
                 } else {
                     this.currentItemId = item.id;

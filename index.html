@@ -1141,6 +1141,8 @@
             this.pendingSync = false;      // marca para reintentar tras un sync en curso
             this.pendingConflicts = [];    // cola de items con conflicto pendiente
             this.activeConflict = null;    // conflicto que se está resolviendo en el modal
+            this.opGen = 0;                // generation token: ↑ en cada loadContext.
+                                            // Async ops capturan al inicio y abortan si cambió.
             this.SCHEMA_HISTORY_KEY_SUFFIX = 'schema_history';
             this.SCHEMA_HISTORY_MAX = 10;
 
@@ -1380,6 +1382,13 @@
             this.pendingConflicts = [];
             this.activeConflict = null;
             this.tempEditIds = new Set();
+            // Invalidar operaciones async en vuelo del contexto anterior.
+            // Cuando vuelvan tras su await, verán que opGen cambió y abortarán
+            // sin escribir resultados al contexto nuevo.
+            this.opGen++;
+            // Cancelar debounce pendiente del contexto anterior
+            clearTimeout(this.syncDebounceTimer);
+            this.syncDebounceTimer = null;
             document.getElementById('conflict-modal').classList.remove('show');
             this.db = { schema: [], items: [], schemaModified: EPOCH_SENTINEL };
             this.openRecords = [];
@@ -1692,12 +1701,17 @@
                 this.pendingSync = true;
                 return;
             }
+            const myGen = this.opGen; // ← captura generación al inicio
             this.syncInFlight = true;
             this.updateSyncButton('loading');
             try {
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Access-Key': apiKey } });
                 if (!res.ok) throw new Error('Fetch failed');
                 const data = await res.json();
+                // ⚠️  Si el contexto cambió mientras esperábamos la respuesta, abortar.
+                // Aplicar este resultado al contexto nuevo escribiría datos del bin antiguo
+                // en localStorage del contexto nuevo (causa de la corrupción cruzada).
+                if (this.opGen !== myGen) return;
                 const record = data.record || {};
                 const meta = record.meta || {};
                 if (meta.defaultMode) localStorage.setItem(this.getStorageKey('default_mode'), meta.defaultMode);
@@ -1779,6 +1793,11 @@
                     if (lSchemaTime > cSchemaTime) localOnlyOrNewer = true;
                 }
 
+                // ⚠️  Última comprobación antes de aplicar resultados al estado local.
+                // El merge anterior es síncrono, así que no debería poder cambiar el contexto,
+                // pero defensa en profundidad.
+                if (this.opGen !== myGen) return;
+
                 this.db.items = mergedItems;
                 this.db.schema = (mergedSchema || []).filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
                 this.db.schemaModified = mergedSchemaModified;
@@ -1808,16 +1827,24 @@
                 // Si descubrimos cambios locales-only durante el merge, súbelos
                 // (excepto si hay conflictos pendientes: en ese caso el sync se posterga).
                 if (localOnlyOrNewer && this.syncEnabled && this.pendingConflicts.length === 0) {
-                    this.debounceSync();
+                    // Diferimos con setTimeout para que termine este try/finally antes
+                    // (mergeAndSync respeta syncInFlight, así que lanzar dentro del mismo
+                    // tick podría chocar con la limpieza del finally).
+                    setTimeout(() => { if (this.opGen === myGen) this.mergeAndSync(); }, 50);
                 }
             } catch (e) {
+                if (this.opGen !== myGen) return;
                 this.updateSyncButton('error');
                 this.showToast('Auth error');
             } finally {
-                this.syncInFlight = false;
-                if (this.pendingSync) {
-                    this.pendingSync = false;
-                    setTimeout(() => this.mergeAndSync(), 150);
+                // Solo limpiar el mutex si seguimos siendo "los dueños" de esta operación.
+                // Si el contexto cambió, el nuevo contexto ya tiene su propio syncInFlight=false.
+                if (this.opGen === myGen) {
+                    this.syncInFlight = false;
+                    if (this.pendingSync) {
+                        this.pendingSync = false;
+                        setTimeout(() => this.mergeAndSync(), 150);
+                    }
                 }
             }
         }
@@ -1877,6 +1904,7 @@
                 this.pendingSync = true;
                 return;
             }
+            const myGen = this.opGen; // ← captura generación al inicio
             this.syncInFlight = true;
             this.updateSyncButton('loading');
 
@@ -1886,10 +1914,15 @@
                 if (!res.ok) throw new Error('Fetch failed');
                 cloudData = await res.json();
             } catch (e) {
+                if (this.opGen !== myGen) return;
                 this.updateSyncButton('error');
                 this.syncInFlight = false;
                 return;
             }
+            // ⚠️  Si el contexto cambió mientras esperábamos el GET, abortar SIN escribir nada.
+            // Mergear con this.db (datos del nuevo contexto) o PUT al binId antiguo causa la
+            // corrupción cruzada que vimos: schema/items de un contexto acaban en otro.
+            if (this.opGen !== myGen) return;
 
             const cloudRecord = cloudData.record || {};
             const cloudItems = Array.isArray(cloudRecord) ? cloudRecord : (cloudRecord.items || []);
@@ -1963,6 +1996,7 @@
             // modal al usuario, y solo cuando resuelva todos los conflictos disparamos
             // un nuevo mergeAndSync que ya no encontrará versiones colisionando.
             if (detectedConflicts.length > 0) {
+                if (this.opGen !== myGen) return;
                 detectedConflicts.forEach(c => {
                     if (!this.pendingConflicts.some(p => p.id === c.id)) {
                         this.pendingConflicts.push(c);
@@ -1985,12 +2019,19 @@
             }
 
             try {
+                // ⚠️  Antes de hacer el PUT, asegurarnos de que seguimos en el mismo contexto.
+                // Si cambió, el binId capturado apunta al bin antiguo y los datos mergeados
+                // pueden estar mezclados con el contexto nuevo.
+                if (this.opGen !== myGen) return;
                 const putRes = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-Access-Key': apiKey },
                     body: JSON.stringify(payload)
                 });
                 if (!putRes.ok) throw new Error('PUT failed');
+                // ⚠️  Tras el PUT, el contexto pudo cambiar durante el await.
+                // No aplicar el resultado al estado local si ya no somos los dueños.
+                if (this.opGen !== myGen) return;
 
                 this.db.items = mergedItems;
                 this.db.schema = mergedSchema;
@@ -2002,12 +2043,15 @@
                 this.renderFilters();
                 this.renderTable(document.getElementById('search-input').value);
             } catch (e) {
+                if (this.opGen !== myGen) return;
                 this.updateSyncButton('error');
             } finally {
-                this.syncInFlight = false;
-                if (this.pendingSync) {
-                    this.pendingSync = false;
-                    setTimeout(() => this.mergeAndSync(), 200);
+                if (this.opGen === myGen) {
+                    this.syncInFlight = false;
+                    if (this.pendingSync) {
+                        this.pendingSync = false;
+                        setTimeout(() => this.mergeAndSync(), 200);
+                    }
                 }
             }
         }
@@ -2135,7 +2179,7 @@
                     e.preventDefault(); const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
                     const item = this.db.schema.splice(fromIdx, 1)[0]; this.db.schema.splice(index, 0, item);
                     this.saveSchema(); this.renderSchemaList(); this.renderTable(document.getElementById('search-input').value);
-                    if (this.syncEnabled) this.debounceSync();
+                    if (this.syncEnabled) this.mergeAndSync();
                 });
                 
                 let meta = field.type.toUpperCase();
@@ -2240,7 +2284,7 @@
                 if (this.editingFieldKey !== key) { this.db.items.forEach(i => { if (i[this.editingFieldKey] !== undefined) { i[key] = i[this.editingFieldKey]; delete i[this.editingFieldKey]; } }); this.saveLocalData(); }
             } else { this.db.schema.push(fieldDef); }
             this.saveSchema(); this.renderSchemaList(); this.resetSchemaForm(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value);
-            if (this.syncEnabled) this.debounceSync();
+            if (this.syncEnabled) this.mergeAndSync();
         }
         removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncEnabled) this.mergeAndSync(); } }
         saveSchema() { 
@@ -2324,7 +2368,7 @@
                 this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
                 if(newFields) this.saveSchema();
                 this.saveLocalData(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); this.showToast(`Imported ${importedCount}`);
-                if (this.syncEnabled) this.debounceSync();
+                if (this.syncEnabled) this.mergeAndSync();
             };
             reader.readAsText(event.target.files[0]);
         }
@@ -2569,7 +2613,7 @@
             }
             this.renderFilters(); 
             this.renderTable(document.getElementById('search-input').value);
-            if (this.syncEnabled) this.debounceSync();
+            if (this.syncEnabled) this.mergeAndSync();
         }
         deleteItem() { 
             if (this.currentItemId && confirm('Delete?')) { 
@@ -2582,7 +2626,7 @@
                     this.closeRecord(this.currentItemId); 
                     this.renderFilters(); 
                     this.renderTable(document.getElementById('search-input').value);
-                    if (this.syncEnabled) this.debounceSync(); 
+                    if (this.syncEnabled) this.mergeAndSync(); 
                 }
             } 
         }
@@ -2649,7 +2693,7 @@
             this.renderSchemaList();
             this.renderTable(document.getElementById('search-input').value);
             this.showToast('Schema restored');
-            if (this.syncEnabled) this.debounceSync();
+            if (this.syncEnabled) this.mergeAndSync();
         }
         saveConfiguration() {
             const apiKey = document.getElementById('conf-api-key').value.trim();
@@ -2709,7 +2753,7 @@
                 item[key] = lines.join('\n');
                 this.bumpItemVersion(item);
                 this.saveLocalData();
-                if (this.syncEnabled) this.debounceSync();
+                if (this.syncEnabled) this.mergeAndSync();
             }
         }
         toggleAllChecklist(id, key, isChecked) {
@@ -2724,7 +2768,7 @@
             item[key] = newLines.join('\n');
             this.bumpItemVersion(item);
             this.saveLocalData();
-            if (this.syncEnabled) this.debounceSync();
+            if (this.syncEnabled) this.mergeAndSync();
             this.viewItem(id); 
         }
         viewItem(id) {
@@ -2912,6 +2956,7 @@
     }
     const app = new ContextApp();
 </script>
+```
 
 </body>
 </html>

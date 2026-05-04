@@ -106,6 +106,41 @@
             background: rgba(255,255,255,0.14);
             color: white;
         }
+        /* Pill toggles inside the header inherit the dark theme.
+           Override fixed 38px height to match regular header buttons. */
+        .header-actions .pill-toggle {
+            height: auto;
+            border-color: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.07);
+        }
+        .header-actions .pill-toggle-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            letter-spacing: 0.07em;
+            background: transparent;
+            color: rgba(255,255,255,0.85);
+            line-height: 1;
+        }
+        .header-actions .pill-toggle-btn:hover {
+            background: rgba(255,255,255,0.14);
+            color: white;
+        }
+        .header-actions .pill-toggle-btn.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        .header-actions .pill-toggle-btn.active-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .header-actions .pill-toggle-btn.pill-new {
+            background: var(--primary);
+            color: #fff;
+        }
+        .header-actions .pill-toggle-btn.pill-new:hover {
+            background: var(--primary-hover);
+            color: #fff;
+        }
         .btn-primary { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
         .btn-primary:hover { background: var(--primary-hover) !important; border-color: var(--primary-hover) !important; }
         .btn-danger { background: rgba(220,38,38,0.07) !important; color: var(--danger) !important; border-color: rgba(220,38,38,0.28) !important; }
@@ -633,6 +668,7 @@
         .header-info h1 { font-size: 14px; letter-spacing: 1.5px; }
         .header-actions { gap: 4px; }
         .header-actions .btn { padding: 5px 9px; font-size: 10px; }
+        .header-actions .pill-toggle-btn { padding: 5px 9px; font-size: 10px; }
 
         /* Content area */
         .content-wrapper { padding: 12px 8px 24px; }
@@ -740,14 +776,6 @@
                     <h1 id="app-title" title="Click to switch context">DATA MANAGER</h1>
                 </div>
                 <div class="header-actions">
-                    <button class="btn" id="copy-clipboard-btn" title="Copy visible data to clipboard">Copy</button>
-                    <button class="btn" id="config-btn">Config</button>
-                </div>
-            </div>
-        </div>
-        <div class="content-wrapper">
-            <div id="list-view" class="view-section active">
-                <div class="search-bar-row">
                     <div class="pill-toggle">
                         <button class="pill-toggle-btn pill-new" id="add-btn">New</button>
                     </div>
@@ -759,6 +787,14 @@
                         <button class="pill-toggle-btn active" id="toggle-edit-btn">Edit</button>
                         <button class="pill-toggle-btn" id="toggle-view-btn">View</button>
                     </div>
+                    <button class="btn" id="copy-clipboard-btn" title="Copy visible data to clipboard">Copy</button>
+                    <button class="btn" id="config-btn">Config</button>
+                </div>
+            </div>
+        </div>
+        <div class="content-wrapper">
+            <div id="list-view" class="view-section active">
+                <div class="search-bar-row">
                     <div class="pill-toggle" id="search-mode-toggle">
                         <button class="pill-toggle-btn active" id="toggle-search-btn">Search</button>
                         <button class="pill-toggle-btn" id="toggle-chat-btn">Chat</button>
@@ -2801,6 +2837,7 @@
     }
     const app = new ContextApp();
 </script>
+```
 
 </body>
 </html>

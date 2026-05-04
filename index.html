@@ -2898,26 +2898,32 @@
 GLOBAL CONTEXT: ${localStorage.getItem(this.getStorageKey('ai_global')) || '(none)'}
 LIST MODE RULES: ${localStorage.getItem(this.getStorageKey('ai_list')) || '(none)'}
 
+SPECIAL FIELD (always present, not in schema):
+- "name" (text) — the title / main identifier of each record. Search inside name with "search" output below.
+
 SCHEMA: ${schemaDesc}
 
 NUMBER FIELD RANGES (from current data): ${JSON.stringify(numHints)}
 
 CURRENT FILTERS (refine on top of these): ${JSON.stringify(this.activeFilters)}
+CURRENT SEARCH TEXT: "${document.getElementById('search-input').value || ''}"
 
 OUTPUT JSON ONLY (no markdown, no prose outside JSON):
 {
   "filters": { "<fieldKey>": "<value>", ... },
+  "search": "<optional substring; matched anywhere in any field including name>",
   "message": "<short confirmation in user's language>"
 }
 
 RULES:
 - For 'select' fields: value MUST be one of the listed options exactly (case-sensitive).
-- For 'text' fields: value is exact-match. If user wants substring search, omit that filter (the user will use Search mode).
 - For 'number' fields: value is a string "RANGO:<min>:<max>:<inclusive>" where inclusive is "1" if max is included, "0" if not.
   Examples: "RANGO:1990:2000:0" means 1990 ≤ x < 2000.  "RANGO:8:10:1" means 8 ≤ x ≤ 10.
-- When user refines ("now also from Spain"), PRESERVE existing filters and add new ones.
-- When user says "clear", "show all", "reset", return "filters": {}.
-- "filters" replaces the entire current filter state (so include preserved filters too).`;
+- For partial text in NAME or any other text field, use "search" (NOT a filter). Example: user asks "games with EVIL in the name" → search: "evil".
+- When user refines ("now also from Spain"), PRESERVE existing filters/search and add new ones.
+- When user says "clear", "show all", "reset", return filters: {} and search: "".
+- "filters" replaces the current filter state entirely. "search" replaces the current search text entirely.
+- If a request requires sorting / "top N" / aggregation, you cannot do it. Return filters: {} and explain in "message" that this list filter mode only filters subsets.`;
 
                 btn.disabled = true; btn.textContent = '...';
                 try {
@@ -2946,18 +2952,32 @@ RULES:
                     }
                     this.activeFilters = newFilters;
 
-                    // Limpiar el input (la consulta en lenguaje natural ya se "consumió")
-                    promptInput.value = '';
+                    // Aplicar texto de búsqueda si la IA lo devolvió.
+                    const searchText = (typeof resp.search === 'string') ? resp.search : '';
+                    if (searchText) {
+                        // Cambiar a modo Search para que el usuario VEA el texto aplicado y pueda
+                        // editarlo con la barra normal. setSearchChatMode limpia el input, así que
+                        // ponemos el valor DESPUÉS del cambio de modo.
+                        this.setSearchChatMode('search');
+                        document.getElementById('search-input').value = searchText;
+                    } else {
+                        // Sin búsqueda: limpia el input y mantiene el modo chat para que el usuario
+                        // pueda lanzar otra petición sin más.
+                        promptInput.value = '';
+                    }
                     this.renderFilters();
-                    this.renderTable('');
+                    this.renderTable(searchText);
 
                     // Feedback al usuario
                     if (resp.message) {
                         this.showToast(resp.message);
                     } else {
+                        const lcSearch = searchText.toLowerCase();
                         const count = this.db.items.filter(i => {
                             if (!i || !i.name || i.deleted) return false;
-                            return Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
+                            const matchesSearch = !lcSearch || Object.values(i).some(v => String(v).toLowerCase().includes(lcSearch));
+                            const matchesFilters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
+                            return matchesSearch && matchesFilters;
                         }).length;
                         this.showToast(`Filtered: ${count} result${count === 1 ? '' : 's'}`);
                     }

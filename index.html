@@ -876,6 +876,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                                 <h2 id="detail-title">View Record</h2>
                                 <div style="display:flex;gap:7px;">
+                                    <button class="btn btn-sm btn-primary" id="detail-edit-btn">Edit</button>
                                     <button class="btn btn-sm" id="detail-back-btn">Back</button>
                                 </div>
                             </div>
@@ -1130,6 +1131,10 @@
             this.saveAndClose = false;
             this.saveAndClone = false;
 
+            // ─── Per-tab "edit from view" override ──────────────
+            // Records whose tab is in edit mode despite global viewMode being 'view'.
+            this.tempEditIds = new Set();
+
             // ─── Sync safety state ───────────────────────────────
             this.firstFetchDone = false;   // bloquea PUTs antes del primer GET exitoso
             this.syncInFlight = false;     // mutex para evitar fetch/sync concurrentes
@@ -1374,6 +1379,7 @@
             this.pendingSync = false;
             this.pendingConflicts = [];
             this.activeConflict = null;
+            this.tempEditIds = new Set();
             document.getElementById('conflict-modal').classList.remove('show');
             this.db = { schema: [], items: [], schemaModified: EPOCH_SENTINEL };
             this.openRecords = [];
@@ -1428,9 +1434,23 @@
                 if (this.viewMode !== 'view') this.toggleMode();
             });
             document.getElementById('detail-back-btn').addEventListener('click', () => this.showView('list'));
+            document.getElementById('detail-edit-btn').addEventListener('click', () => {
+                if (!this.activeRecordId) return;
+                this.tempEditIds.add(this.activeRecordId);
+                this.editItem(this.activeRecordId);
+            });
             document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
             document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
-            document.getElementById('back-btn').addEventListener('click', () => this.showView('list'));
+            document.getElementById('back-btn').addEventListener('click', () => {
+                // Si estábamos en edición temporal desde vista, Cancel solo vuelve a la
+                // vista detalle (no cierra la pestaña).
+                if (this.currentItemId && this.tempEditIds.has(this.currentItemId)) {
+                    this.tempEditIds.delete(this.currentItemId);
+                    this.viewItem(this.currentItemId);
+                } else {
+                    this.showView('list');
+                }
+            });
             document.getElementById('item-form').addEventListener('submit', (e) => this.saveItem(e));
             document.getElementById('delete-btn').addEventListener('click', () => this.deleteItem());
             document.getElementById('export-btn').addEventListener('click', () => this.exportCSV());
@@ -2327,7 +2347,9 @@
             const existing = this.openRecords.find(r => r.id === id);
             if (existing) { existing.name = name; } else { this.openRecords.push({ id, name }); }
             this.activeRecordId = id;
-            const isEdit = this.viewMode === 'edit' || id === '__new__';
+            // Edit panel se muestra si: modo global es edit, o es nuevo, o el id está
+            // marcado como "edición temporal desde vista".
+            const isEdit = this.viewMode === 'edit' || id === '__new__' || this.tempEditIds.has(id);
             document.getElementById('record-tab-edit-panel').style.display = isEdit ? '' : 'none';
             document.getElementById('record-tab-detail-panel').style.display = isEdit ? 'none' : '';
             this.switchListTab('record');
@@ -2344,7 +2366,7 @@
                 btn.innerHTML = `${r.name} <span class="record-tab-x">✕</span>`;
                 btn.addEventListener('click', () => {
                     if (r.id === '__new__') { this.activeRecordId = r.id; this.renderRecordTabs(); document.getElementById('record-tab-edit-panel').style.display = ''; document.getElementById('record-tab-detail-panel').style.display = 'none'; this.switchListTab('record'); }
-                    else if (this.viewMode === 'edit') { this.editItem(r.id); }
+                    else if (this.viewMode === 'edit' || this.tempEditIds.has(r.id)) { this.editItem(r.id); }
                     else { this.viewItem(r.id); }
                 });
                 btn.querySelector('.record-tab-x').addEventListener('click', (e) => { e.stopPropagation(); this.closeRecord(r.id); });
@@ -2353,13 +2375,14 @@
         }
         closeRecord(id) {
             if (!id) { this.renderRecordTabs(); this.switchListTab('data'); document.querySelector('.header-actions').style.display = 'flex'; return; }
+            this.tempEditIds.delete(id);
             this.openRecords = this.openRecords.filter(r => r.id !== id);
             if (this.activeRecordId === id) {
                 this.activeRecordId = null;
                 if (this.openRecords.length > 0) {
                     const next = this.openRecords[this.openRecords.length - 1];
                     if (next.id === '__new__') { this.activeRecordId = next.id; this.renderRecordTabs(); document.getElementById('record-tab-edit-panel').style.display = ''; document.getElementById('record-tab-detail-panel').style.display = 'none'; this.switchListTab('record'); }
-                    else if (this.viewMode === 'edit') { this.editItem(next.id); }
+                    else if (this.viewMode === 'edit' || this.tempEditIds.has(next.id)) { this.editItem(next.id); }
                     else { this.viewItem(next.id); }
                 } else {
                     this.renderRecordTabs(); this.switchListTab('data');
@@ -2537,6 +2560,12 @@
                 if (recIdx !== -1) { this.openRecords[recIdx] = { id: item.id, name: item.name }; }
                 this.activeRecordId = item.id;
                 this.renderRecordTabs();
+                // Si era una edición temporal desde el modo View, vuelve al panel detalle
+                // con los datos recién guardados — el usuario sigue en View globalmente.
+                if (!isNew && this.tempEditIds.has(item.id)) {
+                    this.tempEditIds.delete(item.id);
+                    this.viewItem(item.id);
+                }
             }
             this.renderFilters(); 
             this.renderTable(document.getElementById('search-input').value);
@@ -2651,6 +2680,8 @@
         }
         toggleMode() {
             this.viewMode = this.viewMode === 'edit' ? 'view' : 'edit';
+            // Cualquier "edición temporal desde view" queda absorbida por el cambio global.
+            this.tempEditIds.clear();
             this.applyMode();
             this.renderTable(document.getElementById('search-input').value);
             localStorage.setItem(this.getStorageKey('view_mode'), this.viewMode);

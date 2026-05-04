@@ -691,6 +691,8 @@
         /* List tabs compact */
         .list-tabs { margin-bottom: 10px; flex-wrap: wrap; }
         .list-tab { padding: 8px 12px; font-size: 11px; letter-spacing: 0.06em; }
+        /* EXCEL tab makes no sense on a narrow screen — hide it */
+        .list-tab[data-list-tab="excel"] { display: none; }
 
         /* KPI cards: each on its own row, compact */
         .kpi-card { padding: 10px 14px; flex: 1 1 100%; }
@@ -1169,6 +1171,33 @@
             item.lastModified = new Date().toISOString();
             return item;
         }
+        // ─── Viewport / orientation helpers ──────────────────
+        isPortrait() {
+            return window.matchMedia('(orientation: portrait)').matches;
+        }
+        // Disable pinch-zoom in portrait (where layout is already optimized for the screen),
+        // and react to orientation change to hide the EXCEL tab gracefully.
+        setupViewportGuards() {
+            if (this._viewportGuardsInstalled) return;
+            this._viewportGuardsInstalled = true;
+            // iOS gesture events: block pinch in portrait
+            const blockIfPortrait = (e) => {
+                if (this.isPortrait()) e.preventDefault();
+            };
+            document.addEventListener('gesturestart', blockIfPortrait);
+            document.addEventListener('gesturechange', blockIfPortrait);
+            document.addEventListener('gestureend', blockIfPortrait);
+            // Generic multi-touch (Android/others): block pinch when 2+ fingers in portrait
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 1 && this.isPortrait()) e.preventDefault();
+            }, { passive: false });
+            // If user was on EXCEL tab and rotates to portrait, fall back to LIST
+            window.addEventListener('resize', () => {
+                if (this.activeListTab === 'excel' && this.isPortrait()) {
+                    this.switchListTab('data');
+                }
+            });
+        }
         // ─── Helper to build initial values for a new record using schema defaults ───
         getDefaultsForNewRecord() {
             const initialValues = {};
@@ -1210,6 +1239,7 @@
             } catch (e) { return []; }
         }
         init() {
+            this.setupViewportGuards();
             const params = new URLSearchParams(window.location.search);
             const urlContext = params.get('context');
             const importBin = params.get('bin-id');
@@ -1361,7 +1391,9 @@
                     else this.viewItem(this.activeRecordId);
                 }
             } else {
-                this.switchListTab(defTab);
+                // En portrait, EXCEL no se muestra: nunca aterrizar ahí.
+                const safeTab = (this.isPortrait() && defTab === 'excel') ? 'data' : defTab;
+                this.switchListTab(safeTab);
             }
             const globalKey = localStorage.getItem(this.GLOBAL_API_KEY);
             const hasBinId = localStorage.getItem(this.getStorageKey('bin_id'));
@@ -2837,7 +2869,6 @@
     }
     const app = new ContextApp();
 </script>
-```
 
 </body>
 </html>

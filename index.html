@@ -2744,7 +2744,7 @@
                         html = '<span class="detail-row-value empty">—</span>';
                     } else {
                         const allChecked = lines.every(l => l.trim().startsWith('-'));
-                        const toggleAllHtml = `<label class="detail-checklist-item" style="font-weight:bold; border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:4px;"><input type="checkbox" class="detail-checklist-cb" ${allChecked ? 'checked' : ''} onchange="app.toggleAllChecklist('${id}', '${f.key}', this.checked)"><span>Toggle all</span></label>`;
+                        const toggleAllHtml = `<label class="detail-checklist-item" style="font-weight:bold;"><input type="checkbox" class="detail-checklist-cb" ${allChecked ? 'checked' : ''} onchange="app.toggleAllChecklist('${id}', '${f.key}', this.checked)"><span>Toggle all</span></label>`;
                         
                         html = '<div class="detail-checklist">' + toggleAllHtml + lines.map((l, idx) => {
                             const text = l.trim();

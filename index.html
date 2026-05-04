@@ -620,17 +620,102 @@
         }
         .conflict-option-mine { border-left: 3px solid var(--primary); }
         .conflict-option-theirs { border-left: 3px solid var(--warning); }
-        @media (max-width: 640px) {
-            .app-header-inner { padding: 0 12px; }
-            .content-wrapper { padding: 14px 12px 36px; }
-            .form-card, #ai-assistant-box { padding: 18px; }
-            .modal-header { padding: 16px 16px 0; }
-            .modal-context-line { padding: 3px 16px 0; }
-            .modal-tabs { padding: 0 16px; }
-            .modal-tab-panel { padding: 14px 16px; }
-            .modal-footer { padding: 12px 16px; }
+        /* ─── PORTRAIT MODE ───────────────────────────────────
+           Activates when width <= height (vertical phone OR narrow PC window).
+           Goal: everything fits the screen, only the NAME column is shown,
+           buttons/toggles/forms compact and wrap. */
+        @media (orientation: portrait) {
+            body { font-size: 12px; }
+
+```
+        /* Header compact */
+        .app-header-inner { padding: 0 10px; height: 48px; gap: 6px; }
+        .header-info h1 { font-size: 14px; letter-spacing: 1.5px; }
+        .header-actions { gap: 4px; }
+        .header-actions .btn { padding: 5px 9px; font-size: 10px; }
+
+        /* Content area */
+        .content-wrapper { padding: 12px 8px 24px; }
+
+        /* Body shouldn't try to be wider than the viewport */
+        body { min-width: 0; }
+
+        /* Search bar row wraps gracefully */
+        .search-bar-row { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .search-bar { padding: 8px 10px; font-size: 13px; }
+        .pill-toggle { height: 30px; }
+        .pill-toggle-btn { padding: 0 8px; font-size: 10px; letter-spacing: 0.05em; }
+        #chat-send-btn { padding: 5px 10px; font-size: 10px; }
+
+        /* Filters compact */
+        .filter-section { padding: 6px 10px; }
+        .filter-group { padding-right: 8px; gap: 4px; }
+        .filter-chip { font-size: 10px; padding: 1px 6px; }
+
+        /* List tabs compact */
+        .list-tabs { margin-bottom: 10px; flex-wrap: wrap; }
+        .list-tab { padding: 8px 12px; font-size: 11px; letter-spacing: 0.06em; }
+
+        /* KPI cards: each on its own row, compact */
+        .kpi-card { padding: 10px 14px; flex: 1 1 100%; }
+        .kpi-value { font-size: 24px; }
+
+        /* TABLES: tight, only first column (Name) visible */
+        table { min-width: 0 !important; width: 100% !important; }
+        .table-container { overflow-x: hidden; }
+        #data-table th:not(:first-child),
+        #data-table td:not(:first-child),
+        #excel-table th:not(:first-child),
+        #excel-table td:not(:first-child) {
+            display: none;
         }
-    </style>
+        th, td { padding: 8px 10px; font-size: 13px; }
+
+        /* Form: inputs stack vertically, full width */
+        .form-card, #ai-assistant-box { padding: 14px; }
+        .form-group {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+        .form-label { min-width: 0; }
+        .form-input, .form-select { font-size: 13px; padding: 8px 10px; }
+
+        /* Form action buttons wrap if many */
+        .form-card > div[style*="space-between"] {
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px !important;
+        }
+        .form-card > div[style*="space-between"] > div {
+            flex-wrap: wrap; gap: 4px;
+        }
+
+        /* Detail rows stack */
+        .detail-row {
+            flex-direction: column; gap: 4px; align-items: flex-start;
+        }
+        .detail-row-key { min-width: 0; }
+
+        /* Modals: use almost the whole screen */
+        .modal { width: 96%; max-width: 96%; }
+        .modal-header { padding: 14px 16px 0; }
+        .modal-context-line { padding: 3px 16px 0; }
+        .modal-tabs { padding: 0 12px; flex-wrap: wrap; }
+        .modal-tab { padding: 7px 10px; font-size: 11px; }
+        .modal-tab-panel { padding: 12px 14px; }
+        .modal-footer { padding: 10px 14px; flex-wrap: wrap; }
+
+        /* Toast spans available width nicely */
+        .toast {
+            right: 10px; bottom: 10px; left: 10px;
+            text-align: center; font-size: 12px;
+        }
+    }
+</style>
+```
+
 </head>
 <body>
     <div id="startup-screen" class="startup-screen" style="display: none;">
@@ -2716,7 +2801,6 @@
     }
     const app = new ContextApp();
 </script>
-```
 
 </body>
 </html>

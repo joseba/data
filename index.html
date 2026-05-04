@@ -1011,9 +1011,9 @@
                     <label class="form-label">Edit Mode Context</label>
                     <textarea class="form-input" id="conf-ai-ctx-edit" placeholder="e.g.: Translate synopses to Spanish" rows="2"></textarea>
                 </div>
-                <div class="form-group" style="display:none;">
+                <div class="form-group">
                     <label class="form-label">List Mode Context</label>
-                    <textarea class="form-input" id="conf-ai-ctx-list" rows="2"></textarea>
+                    <textarea class="form-input" id="conf-ai-ctx-list" placeholder="e.g.: When user says 'pending' filter Status='To Do'" rows="2"></textarea>
                 </div>
             </div>
             <div class="modal-tab-panel" id="tab-backup" style="display:none;">
@@ -2709,6 +2709,7 @@
             localStorage.setItem(this.getStorageKey('gemini_model'), document.getElementById('conf-gemini-model').value);
             localStorage.setItem(this.getStorageKey('ai_global'), document.getElementById('conf-ai-ctx-global').value.trim());
             localStorage.setItem(this.getStorageKey('ai_edit'), document.getElementById('conf-ai-ctx-edit').value.trim());
+            localStorage.setItem(this.getStorageKey('ai_list'), document.getElementById('conf-ai-ctx-list').value.trim());
             this.updateSyncButton('idle'); 
             document.getElementById('config-modal').classList.remove('show'); this.showToast('Config Saved');
             
@@ -2822,26 +2823,158 @@
             document.getElementById('search-input').value = '';
         }
         async autoFillWithAI() {
-            const key = localStorage.getItem('global_gemini_api_key'), promptInput = document.getElementById('search-input'), btn = document.getElementById('chat-send-btn');
+            const key = localStorage.getItem('global_gemini_api_key');
+            const promptInput = document.getElementById('search-input');
+            const btn = document.getElementById('chat-send-btn');
+            const userMsg = promptInput.value.trim();
+
+            if (!key) { this.showToast('Configure AI Key first'); return; }
+            if (!userMsg) { this.showToast('Type a request first'); return; }
+
+            // Decide qué hace el chat según dónde esté el usuario:
+            //   - Si el panel de edición de un registro está visible → rellenar formulario.
+            //   - En cualquier otro caso (LIST, KPIs, EXCEL, o detalle en View) → filtrar lista.
+            const editPanelVisible = this.activeListTab === 'record'
+                && document.getElementById('record-tab-edit-panel').style.display !== 'none';
+
+            if (editPanelVisible) {
+                await this._aiFillRecord(userMsg, key, promptInput, btn);
+            } else {
+                await this._aiFilterList(userMsg, key, promptInput, btn);
+            }
+        }
+
+        async _aiFillRecord(userMsg, key, promptInput, btn) {
             const model = localStorage.getItem(this.getStorageKey('gemini_model')) || 'models/gemini-2.0-flash';
             const name = document.getElementById('field-name').value.trim();
-            if (!key) { this.showToast('Configure AI Key first'); return; }
             if (!name) { this.showToast('Enter a NAME first'); return; }
             const schemaKeys = this.db.schema.map(f => f.key);
-            const systemPrompt = `CONTEXT GLOBAL: ${localStorage.getItem(this.getStorageKey('ai_global'))}\nREGLAS: ${localStorage.getItem(this.getStorageKey('ai_edit'))}\nCAMPOS: ${this.db.schema.map(f => `"${f.key}" (${f.type}) instructions: ${f.aiRule}`).join(', ')}\nJSON STRUCTURE: {"datos": ${JSON.stringify(schemaKeys.reduce((a,k)=>({...a,[k]:""}),{}))}, "mensaje": "description"}. Solo JSON, no markdown.`;
-            const userPrompt = `ITEM: "${name}"\nCURRENT DATA: ${JSON.stringify(Array.from(document.querySelectorAll('#dynamic-fields-container .form-input')).reduce((a,el)=>({...a,[el.dataset.key]:el.value}),{}))}\nUSER ORDER: "${promptInput.value}"`;
+            const systemPrompt = `CONTEXT GLOBAL: ${localStorage.getItem(this.getStorageKey('ai_global')) || ''}\nREGLAS: ${localStorage.getItem(this.getStorageKey('ai_edit')) || ''}\nCAMPOS: ${this.db.schema.map(f => `"${f.key}" (${f.type}) instructions: ${f.aiRule || ''}`).join(', ')}\nJSON STRUCTURE: {"datos": ${JSON.stringify(schemaKeys.reduce((a,k)=>({...a,[k]:""}),{}))}, "mensaje": "description"}. Solo JSON, no markdown.`;
+            const userPrompt = `ITEM: "${name}"\nCURRENT DATA: ${JSON.stringify(Array.from(document.querySelectorAll('#dynamic-fields-container .form-input')).reduce((a,el)=>({...a,[el.dataset.key]:el.value}),{}))}\nUSER ORDER: "${userMsg}"`;
             btn.disabled = true; btn.textContent = '...';
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ system_instruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: userPrompt }] }], generationConfig: { response_mime_type: 'application/json' } })
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: systemPrompt }] },
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        generationConfig: { response_mime_type: 'application/json' }
+                    })
                 });
                 const data = await res.json();
                 const resp = JSON.parse(data.candidates[0].content.parts[0].text);
                 if (resp.datos) Object.entries(resp.datos).forEach(([k, v]) => { const el = document.querySelector(`[data-key="${k}"]`); if (el) el.value = v; });
                 if (resp.mensaje) this.showToast(resp.mensaje);
                 promptInput.value = '';
-            } catch (err) { this.showToast('AI Error'); } finally { btn.disabled = false; btn.textContent = 'Send'; }
+            } catch (err) {
+                this.showToast('AI Error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Send';
+            }
+        }
+
+        async _aiFilterList(userMsg, key, promptInput, btn) {
+            const model = localStorage.getItem(this.getStorageKey('gemini_model')) || 'models/gemini-2.0-flash';
+
+            // Descripción del schema para que la IA sepa los campos disponibles
+            const schemaDesc = this.db.schema.map(f => {
+                let desc = `"${f.key}" (${f.type})`;
+                if (f.type === 'select' && f.options && f.options.length) {
+                    desc += ` options: [${f.options.join(' | ')}]`;
+                }
+                return desc;
+            }).join(', ');
+
+            // Rangos numéricos derivados de los datos reales (ayuda a la IA con expresiones tipo "los 90")
+            const numHints = {};
+            this.db.schema.filter(f => f.type === 'number').forEach(f => {
+                const values = this.db.items
+                    .filter(i => i && !i.deleted)
+                    .map(i => parseFloat(i[f.key]))
+                    .filter(v => !isNaN(v));
+                if (values.length > 0) {
+                    numHints[f.key] = { min: Math.min(...values), max: Math.max(...values) };
+                }
+            });
+
+            const systemPrompt = `You translate natural-language requests into a filter state for a records database.
+```
+
+GLOBAL CONTEXT: ${localStorage.getItem(this.getStorageKey(‘ai_global’)) || ‘(none)’}
+LIST MODE RULES: ${localStorage.getItem(this.getStorageKey(‘ai_list’)) || ‘(none)’}
+
+SCHEMA: ${schemaDesc}
+
+NUMBER FIELD RANGES (from current data): ${JSON.stringify(numHints)}
+
+CURRENT FILTERS (refine on top of these): ${JSON.stringify(this.activeFilters)}
+
+OUTPUT JSON ONLY (no markdown, no prose outside JSON):
+{
+“filters”: { “<fieldKey>”: “<value>”, … },
+“message”: “<short confirmation in user’s language>”
+}
+
+RULES:
+
+- For ‘select’ fields: value MUST be one of the listed options exactly (case-sensitive).
+- For ‘text’ fields: value is exact-match. If user wants substring search, omit that filter (the user will use Search mode).
+- For ‘number’ fields: value is a string “RANGO:<min>:<max>:<inclusive>” where inclusive is “1” if max is included, “0” if not.
+  Examples: “RANGO:1990:2000:0” means 1990 ≤ x < 2000.  “RANGO:8:10:1” means 8 ≤ x ≤ 10.
+- When user refines (“now also from Spain”), PRESERVE existing filters and add new ones.
+- When user says “clear”, “show all”, “reset”, return “filters”: {}.
+- “filters” replaces the entire current filter state (so include preserved filters too).`;
+  
+  ```
+            btn.disabled = true; btn.textContent = '...';
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: systemPrompt }] },
+                        contents: [{ parts: [{ text: userMsg }] }],
+                        generationConfig: { response_mime_type: 'application/json' }
+                    })
+                });
+                const data = await res.json();
+                const resp = JSON.parse(data.candidates[0].content.parts[0].text);
+  
+                // Validar filtros contra el schema (descartar campos inexistentes y opciones inválidas)
+                const newFilters = {};
+                const fieldMap = new Map(this.db.schema.map(f => [f.key, f]));
+                if (resp.filters && typeof resp.filters === 'object') {
+                    for (const [k, v] of Object.entries(resp.filters)) {
+                        const field = fieldMap.get(k);
+                        if (!field) continue; // campo desconocido — ignorar
+                        if (field.type === 'select' && field.options && !field.options.includes(v)) continue;
+                        newFilters[k] = v;
+                    }
+                }
+                this.activeFilters = newFilters;
+  
+                // Limpiar el input (la consulta en lenguaje natural ya se "consumió")
+                promptInput.value = '';
+                this.renderFilters();
+                this.renderTable('');
+  
+                // Feedback al usuario
+                if (resp.message) {
+                    this.showToast(resp.message);
+                } else {
+                    const count = this.db.items.filter(i => {
+                        if (!i || !i.name || i.deleted) return false;
+                        return Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
+                    }).length;
+                    this.showToast(`Filtered: ${count} result${count === 1 ? '' : 's'}`);
+                }
+            } catch (err) {
+                console.error('AI filter error:', err);
+                this.showToast('AI Error — check console');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Send';
+            }
         }
         // ─── Conflict resolution modal ───────────────────────
         openNextConflict() {
@@ -2865,7 +2998,7 @@
             const idx = 1; // Siempre estamos resolviendo el primero de la cola
             document.getElementById('conflict-item-name').textContent = c.mine.name || c.theirs.name || '?';
             document.getElementById('conflict-progress').textContent = total > 1 ? `Conflict ${idx} of ${total}` : '';
-
+  
             // Conjunto de claves a comparar: todas las del schema + name (excluye metadatos).
             const fieldKeys = ['name', ...this.db.schema.map(f => f.key).filter(k => k !== 'name')];
             const list = document.getElementById('conflict-fields-list');
@@ -2955,8 +3088,9 @@
         showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4000); }
     }
     const app = new ContextApp();
-</script>
-```
+  
+  
+    </script>
 
 </body>
 </html>

@@ -2921,7 +2921,7 @@
                     const data = await res.json();
                     const resp = JSON.parse(data.candidates[0].content.parts[0].text);
                     if (resp.datos) Object.entries(resp.datos).forEach(([k, v]) => { const el = document.querySelector(`[data-key="${k}"]`); if (el) el.value = v; });
-                    if (resp.mensaje) this.showToast(resp.mensaje);
+                    if (resp.mensaje) this.showAiAnswer(resp.mensaje);
                     // Texto del chat permanece visible; click en el input lo vacía.
                 } catch (err) {
                     this.showToast('AI Error');

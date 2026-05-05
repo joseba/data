@@ -420,6 +420,25 @@
             display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
         }
         .search-bar-row .search-bar { margin-bottom: 0; flex: 1; }
+        /* Chat bar row: separate input dedicated to AI chat. Click clears its content. */
+        .chat-bar-row {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+        }
+        .chat-bar {
+            flex: 1; padding: 10px 14px;
+            border: 1px solid var(--border); border-radius: var(--radius);
+            font-family: 'Barlow', sans-serif; font-size: 14px;
+            background: var(--surface); color: var(--text);
+            outline: none; transition: border-color 0.14s, box-shadow 0.14s;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--success);
+        }
+        .chat-bar:focus {
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+        }
+        .chat-bar::placeholder { color: var(--text-light); font-style: italic; }
+        #chat-send-btn { flex-shrink: 0; }
         /* ─── PILL TOGGLES (shared style for both View/Edit and Search/Chat) ─── */
         .pill-toggle {
             display: flex; flex-shrink: 0;
@@ -436,7 +455,6 @@
         .pill-toggle-btn.active-danger { background: var(--danger); color: #fff; }
         .pill-toggle-btn.pill-new { background: var(--primary); color: #fff; }
         .pill-toggle-btn.pill-new:hover { background: var(--primary-hover); }
-        #chat-send-btn { display: none; flex-shrink: 0; }
         /* Search */
         .search-bar {
             width: 100%; padding: 10px 14px; margin-bottom: 14px;
@@ -732,6 +750,9 @@
             .search-bar { padding: 8px 10px; font-size: 13px; }
             .pill-toggle { height: 30px; }
             .pill-toggle-btn { padding: 0 8px; font-size: 10px; letter-spacing: 0.05em; }
+            /* Chat bar row */
+            .chat-bar-row { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+            .chat-bar { padding: 8px 10px; font-size: 13px; }
             #chat-send-btn { padding: 5px 10px; font-size: 10px; }
 
             /* Filters compact + wrapping inside each group (clave para que no
@@ -854,11 +875,10 @@
         <div class="content-wrapper">
             <div id="list-view" class="view-section active">
                 <div class="search-bar-row">
-                    <div class="pill-toggle" id="search-mode-toggle">
-                        <button class="pill-toggle-btn active" id="toggle-search-btn">Search</button>
-                        <button class="pill-toggle-btn" id="toggle-chat-btn">Chat</button>
-                    </div>
                     <input type="text" class="search-bar" id="search-input" placeholder="Search records...">
+                </div>
+                <div class="chat-bar-row" id="chat-bar-row" style="display:none;">
+                    <input type="text" class="chat-bar" id="chat-input" placeholder='Ask or filter: "5 most expensive", "fighting games"...'>
                     <button class="btn" id="chat-send-btn">Send</button>
                 </div>
                 <div id="filter-container" class="filter-section"></div>
@@ -1172,7 +1192,6 @@
                 this.sortDirection = 'asc';
                 this.viewMode = 'edit';
                 this.activeListTab = 'kpis';
-                this.searchChatMode = 'search';
                 this.openRecords = [];
                 this.activeRecordId = null;
                 this.tokenModalMode = 'apikey';
@@ -1455,10 +1474,7 @@
                 this.renderFilters();
                 this.renderTable();
                 const hasGeminiKey = !!localStorage.getItem('global_gemini_api_key');
-                document.getElementById('search-mode-toggle').style.display = hasGeminiKey ? 'flex' : 'none';
-                if (!hasGeminiKey) {
-                    this.setSearchChatMode('search');
-                }
+                document.getElementById('chat-bar-row').style.display = hasGeminiKey ? 'flex' : 'none';
                 if (this.activeRecordId) {
                     this.renderRecordTabs();
                     if (this.activeRecordId === '__new__') {
@@ -1528,13 +1544,15 @@
                 document.querySelectorAll('.list-tab[data-list-tab="kpis"], .list-tab[data-list-tab="data"], .list-tab[data-list-tab="excel"]').forEach(tab => {
                     tab.addEventListener('click', () => this.switchListTab(tab.dataset.listTab));
                 });
-                document.getElementById('toggle-search-btn').addEventListener('click', () => this.setSearchChatMode('search'));
-                document.getElementById('toggle-chat-btn').addEventListener('click', () => this.setSearchChatMode('chat'));
                 document.getElementById('chat-send-btn').addEventListener('click', () => this.autoFillWithAI());
                 document.getElementById('ai-answer-close-btn').addEventListener('click', () => this.hideAiAnswer());
+                // Click en el input de chat = vaciar siempre. Sencillez sobre todo.
+                document.getElementById('chat-input').addEventListener('click', (e) => {
+                    e.target.value = '';
+                });
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
-                        if (document.activeElement.id === 'search-input' && this.searchChatMode === 'chat') {
+                        if (document.activeElement.id === 'chat-input') {
                             e.preventDefault();
                             this.autoFillWithAI();
                         } else if (document.getElementById('copy-modal').classList.contains('show')) {
@@ -1559,10 +1577,8 @@
                     document.getElementById('schema-default-row').style.display = ['text', 'number', 'select'].includes(type) ? '' : 'none';
                 });
                 document.getElementById('search-input').addEventListener('input', (e) => {
-                    if (this.searchChatMode === 'search') {
-                        this.renderTable(e.target.value);
-                        this.renderFilters();
-                    }
+                    this.renderTable(e.target.value);
+                    this.renderFilters();
                 });
                 document.querySelectorAll('#config-modal .modal-tab').forEach(tab => {
                     tab.addEventListener('click', () => {
@@ -2856,28 +2872,17 @@
                 });
                 this.openRecord(id);
             }
-            setSearchChatMode(mode) {
-                this.searchChatMode = mode;
-                const input = document.getElementById('search-input');
-                document.getElementById('toggle-search-btn').classList.toggle('active', mode === 'search');
-                document.getElementById('toggle-chat-btn').classList.toggle('active', mode === 'chat');
-                document.getElementById('chat-send-btn').style.display = mode === 'chat' ? '' : 'none';
-                input.placeholder = mode === 'chat' ? 'Escribe aquí tu petición...' : 'Search records...';
-                input.value = '';
-                if (mode === 'search') { this.renderTable(''); this.renderFilters(); }
-                input.focus();
-            }
             toggleAIAssistantBox() {
+                // Llamado al abrir/editar/ver un registro: simplemente actualiza la
+                // visibilidad del chat según haya o no Gemini key configurada.
                 const hasKey = !!localStorage.getItem('global_gemini_api_key');
-                document.getElementById('search-mode-toggle').style.display = hasKey ? 'flex' : 'none';
-                if (!hasKey) this.setSearchChatMode('search');
-                document.getElementById('search-input').value = '';
+                document.getElementById('chat-bar-row').style.display = hasKey ? 'flex' : 'none';
             }
             async autoFillWithAI() {
                 const key = localStorage.getItem('global_gemini_api_key');
-                const promptInput = document.getElementById('search-input');
+                const chatInput = document.getElementById('chat-input');
                 const btn = document.getElementById('chat-send-btn');
-                const userMsg = promptInput.value.trim();
+                const userMsg = chatInput.value.trim();
 
                 if (!key) { this.showToast('Configure AI Key first'); return; }
                 if (!userMsg) { this.showToast('Type a request first'); return; }
@@ -2889,9 +2894,9 @@
                     && document.getElementById('record-tab-edit-panel').style.display !== 'none';
 
                 if (editPanelVisible) {
-                    await this._aiFillRecord(userMsg, key, promptInput, btn);
+                    await this._aiFillRecord(userMsg, key, chatInput, btn);
                 } else {
-                    await this._aiChatList(userMsg, key, promptInput, btn);
+                    await this._aiChatList(userMsg, key, chatInput, btn);
                 }
             }
 
@@ -2917,7 +2922,7 @@
                     const resp = JSON.parse(data.candidates[0].content.parts[0].text);
                     if (resp.datos) Object.entries(resp.datos).forEach(([k, v]) => { const el = document.querySelector(`[data-key="${k}"]`); if (el) el.value = v; });
                     if (resp.mensaje) this.showToast(resp.mensaje);
-                    promptInput.value = '';
+                    // Texto del chat permanece visible; click en el input lo vacía.
                 } catch (err) {
                     this.showToast('AI Error');
                 } finally {
@@ -2961,10 +2966,9 @@
                 });
 
                 // Registros actualmente visibles (lo que el usuario ve), para que la IA pueda
-                // contestar preguntas sobre ellos en modo "answer". Solo cuenta el search del
-                // input cuando el toggle está en Search; en Chat el input es la consulta natural.
-                const inSearchMode = this.searchChatMode === 'search';
-                const currentSearch = inSearchMode ? document.getElementById('search-input').value : '';
+                // contestar preguntas sobre ellos en modo "answer". El input de búsqueda
+                // siempre representa el texto activo (no hay modos).
+                const currentSearch = document.getElementById('search-input').value;
                 const lcSearchCurrent = currentSearch.toLowerCase();
                 const visibleItems = this.db.items.filter(i => {
                     if (!i || !i.id || !i.name || i.deleted) return false;
@@ -3044,7 +3048,7 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                             ? resp.answer
                             : 'La IA no devolvió respuesta.';
                         this.showAiAnswer(answerText);
-                        promptInput.value = ''; // input limpio para la siguiente pregunta
+                        // El texto del chat permanece visible (click lo vacía).
                         return;
                     }
 
@@ -3065,14 +3069,10 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                     }
                     this.activeFilters = newFilters;
 
+                    // Aplicar el texto de búsqueda devuelto por la IA al input de Search
+                    // (independiente del input de chat, que mantiene su texto).
                     const searchText = (typeof resp.search === 'string') ? resp.search : '';
-                    if (searchText) {
-                        // Cambiar a Search para que el texto aplicado sea visible y editable.
-                        this.setSearchChatMode('search');
-                        document.getElementById('search-input').value = searchText;
-                    } else {
-                        promptInput.value = '';
-                    }
+                    document.getElementById('search-input').value = searchText;
                     this.renderFilters();
                     this.renderTable(searchText);
 

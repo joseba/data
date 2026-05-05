@@ -611,6 +611,55 @@
             font-size: 11px; color: var(--text-light);
             display: block; margin-top: 3px;
         }
+        /* ─── AI ANSWER CARD (Q&A mode) ─── */
+        .ai-answer-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--success);
+            padding: 14px 42px 14px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+            position: relative;
+            max-height: 360px;
+            overflow-y: auto;
+        }
+        .ai-answer-label {
+            font-family: 'Barlow Condensed', "Arial Narrow", sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--success);
+            margin-bottom: 6px;
+        }
+        .ai-answer-text {
+            font-size: 14px;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.55;
+        }
+        .ai-answer-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 26px;
+            height: 26px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 22px;
+            line-height: 1;
+            border-radius: 4px;
+            padding: 0;
+            transition: background 0.12s, color 0.12s;
+        }
+        .ai-answer-close:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
         /* ─── CONFLICT MODAL ─── */
         #conflict-modal .modal { max-width: 760px; }
         .conflict-intro {
@@ -813,6 +862,11 @@
                     <button class="btn" id="chat-send-btn">Send</button>
                 </div>
                 <div id="filter-container" class="filter-section"></div>
+                <div id="ai-answer-card" class="ai-answer-card" style="display:none;">
+                    <button class="ai-answer-close" id="ai-answer-close-btn" aria-label="Close">×</button>
+                    <div class="ai-answer-label">AI Answer</div>
+                    <div class="ai-answer-text" id="ai-answer-text"></div>
+                </div>
                 <div class="list-tabs">
                     <button class="list-tab active" data-list-tab="kpis">KPIs</button>
                     <button class="list-tab" data-list-tab="data">LIST</button>
@@ -1385,6 +1439,7 @@
                 clearTimeout(this.syncDebounceTimer);
                 this.syncDebounceTimer = null;
                 document.getElementById('conflict-modal').classList.remove('show');
+                document.getElementById('ai-answer-card').style.display = 'none';
                 this.db = { schema: [], items: [], schemaModified: EPOCH_SENTINEL };
                 this.openRecords = [];
                 this.activeRecordId = null;
@@ -1476,6 +1531,7 @@
                 document.getElementById('toggle-search-btn').addEventListener('click', () => this.setSearchChatMode('search'));
                 document.getElementById('toggle-chat-btn').addEventListener('click', () => this.setSearchChatMode('chat'));
                 document.getElementById('chat-send-btn').addEventListener('click', () => this.autoFillWithAI());
+                document.getElementById('ai-answer-close-btn').addEventListener('click', () => this.hideAiAnswer());
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         if (document.activeElement.id === 'search-input' && this.searchChatMode === 'chat') {
@@ -2835,7 +2891,7 @@
                 if (editPanelVisible) {
                     await this._aiFillRecord(userMsg, key, promptInput, btn);
                 } else {
-                    await this._aiFilterList(userMsg, key, promptInput, btn);
+                    await this._aiChatList(userMsg, key, promptInput, btn);
                 }
             }
 
@@ -2869,10 +2925,21 @@
                 }
             }
 
-            async _aiFilterList(userMsg, key, promptInput, btn) {
+            // ─── Helpers para mostrar/ocultar la tarjeta de respuesta de la IA ───
+            showAiAnswer(text) {
+                const card = document.getElementById('ai-answer-card');
+                const textEl = document.getElementById('ai-answer-text');
+                textEl.textContent = text || '';
+                card.style.display = 'block';
+            }
+            hideAiAnswer() {
+                document.getElementById('ai-answer-card').style.display = 'none';
+            }
+
+            async _aiChatList(userMsg, key, promptInput, btn) {
                 const model = localStorage.getItem(this.getStorageKey('gemini_model')) || 'models/gemini-2.0-flash';
 
-                // Descripción del schema para que la IA sepa los campos disponibles
+                // Descripción del schema para la IA
                 const schemaDesc = this.db.schema.map(f => {
                     let desc = `"${f.key}" (${f.type})`;
                     if (f.type === 'select' && f.options && f.options.length) {
@@ -2881,7 +2948,7 @@
                     return desc;
                 }).join(', ');
 
-                // Rangos numéricos derivados de los datos reales (ayuda a la IA con expresiones tipo "los 90")
+                // Rangos numéricos derivados de los datos reales
                 const numHints = {};
                 this.db.schema.filter(f => f.type === 'number').forEach(f => {
                     const values = this.db.items
@@ -2893,37 +2960,69 @@
                     }
                 });
 
-                const systemPrompt = `You translate natural-language requests into a filter state for a records database.
+                // Registros actualmente visibles (lo que el usuario ve), para que la IA pueda
+                // contestar preguntas sobre ellos en modo "answer". Solo cuenta el search del
+                // input cuando el toggle está en Search; en Chat el input es la consulta natural.
+                const inSearchMode = this.searchChatMode === 'search';
+                const currentSearch = inSearchMode ? document.getElementById('search-input').value : '';
+                const lcSearchCurrent = currentSearch.toLowerCase();
+                const visibleItems = this.db.items.filter(i => {
+                    if (!i || !i.id || !i.name || i.deleted) return false;
+                    const matchesSearch = !lcSearchCurrent || Object.values(i).some(v => String(v).toLowerCase().includes(lcSearchCurrent));
+                    const matchesFilters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
+                    return matchesSearch && matchesFilters;
+                });
+                // Compactar para reducir el payload: quita campos vacíos y metadatos internos.
+                const compactItems = visibleItems.map(it => {
+                    const out = {};
+                    for (const [k, v] of Object.entries(it)) {
+                        if (k === 'lastModified' || k === 'version' || k === 'deleted') continue;
+                        if (v === '' || v === null || v === undefined) continue;
+                        out[k] = v;
+                    }
+                    return out;
+                });
+
+                const systemPrompt = `You assist a user exploring a records database. Pick ONE of two modes per request and respond ONLY with JSON.
+
+MODE "filter": user wants to subset/narrow the visible records by criteria.
+  Examples: "fighting games", "from the 90s", "Nintendo platformers", "with 'evil' in name"
+  Output: { "mode": "filter", "filters": {...}, "search": "...", "message": "..." }
+
+MODE "answer": user asks a question requiring sorting/ranking/counting/aggregating/describing the data.
+  Examples: "the 5 most expensive", "how many GBC do I own?", "average year?", "which developer appears most?"
+  Output: { "mode": "answer", "answer": "<answer in user's language; can use \\n for line breaks>" }
+
+Pick "answer" when the request is ABOUT the data (analysis, ranking, count, summary).
+Pick "filter" when the request NARROWS the data.
 
 GLOBAL CONTEXT: ${localStorage.getItem(this.getStorageKey('ai_global')) || '(none)'}
-LIST MODE RULES: ${localStorage.getItem(this.getStorageKey('ai_list')) || '(none)'}
+LIST RULES: ${localStorage.getItem(this.getStorageKey('ai_list')) || '(none)'}
 
-SPECIAL FIELD (always present, not in schema):
-- "name" (text) — the title / main identifier of each record. Search inside name with "search" output below.
+SPECIAL FIELD: "name" (text) — title of each record (always present, not in schema).
 
 SCHEMA: ${schemaDesc}
 
-NUMBER FIELD RANGES (from current data): ${JSON.stringify(numHints)}
+NUMBER RANGES (current data): ${JSON.stringify(numHints)}
 
-CURRENT FILTERS (refine on top of these): ${JSON.stringify(this.activeFilters)}
-CURRENT SEARCH TEXT: "${document.getElementById('search-input').value || ''}"
+CURRENT FILTERS: ${JSON.stringify(this.activeFilters)}
+CURRENT SEARCH: "${currentSearch}"
 
-OUTPUT JSON ONLY (no markdown, no prose outside JSON):
-{
-  "filters": { "<fieldKey>": "<value>", ... },
-  "search": "<optional substring; matched anywhere in any field including name>",
-  "message": "<short confirmation in user's language>"
-}
+CURRENTLY VISIBLE RECORDS (after current filters/search — what user sees) [${compactItems.length} items]:
+${JSON.stringify(compactItems)}
 
-RULES:
-- For 'select' fields: value MUST be one of the listed options exactly (case-sensitive).
-- For 'number' fields: value is a string "RANGO:<min>:<max>:<inclusive>" where inclusive is "1" if max is included, "0" if not.
-  Examples: "RANGO:1990:2000:0" means 1990 ≤ x < 2000.  "RANGO:8:10:1" means 8 ≤ x ≤ 10.
-- For partial text in NAME or any other text field, use "search" (NOT a filter). Example: user asks "games with EVIL in the name" → search: "evil".
-- When user refines ("now also from Spain"), PRESERVE existing filters/search and add new ones.
-- When user says "clear", "show all", "reset", return filters: {} and search: "".
-- "filters" replaces the current filter state entirely. "search" replaces the current search text entirely.
-- If a request requires sorting / "top N" / aggregation, you cannot do it. Return filters: {} and explain in "message" that this list filter mode only filters subsets.`;
+FILTER MODE rules:
+- 'select' values must match an exact option (case-sensitive).
+- 'number' value: "RANGO:<min>:<max>:<inclusive>", e.g. "RANGO:1990:2000:0".
+- For partial match in name or any text field, use "search" (NOT a filter).
+- Refining preserves previous filters/search; "clear / reset / show all" → filters: {}, search: "".
+
+ANSWER MODE rules:
+- Base your answer ONLY on the CURRENTLY VISIBLE RECORDS shown above. Don't invent data.
+- Be concise and direct. Use \\n for new lines / lists.
+- If you cannot answer with the visible records, say so honestly.
+
+OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
 
                 btn.disabled = true; btn.textContent = '...';
                 try {
@@ -2939,36 +3038,44 @@ RULES:
                     const data = await res.json();
                     const resp = JSON.parse(data.candidates[0].content.parts[0].text);
 
-                    // Validar filtros contra el schema (descartar campos inexistentes y opciones inválidas)
+                    // ── Modo ANSWER: muestra la respuesta de la IA en la tarjeta ──
+                    if (resp.mode === 'answer') {
+                        const answerText = (typeof resp.answer === 'string' && resp.answer.trim())
+                            ? resp.answer
+                            : 'La IA no devolvió respuesta.';
+                        this.showAiAnswer(answerText);
+                        promptInput.value = ''; // input limpio para la siguiente pregunta
+                        return;
+                    }
+
+                    // ── Modo FILTER (por defecto si mode no es 'answer') ──
+                    // Al entrar en filter, ocultamos cualquier respuesta previa para que la UI
+                    // no quede inconsistente.
+                    this.hideAiAnswer();
+
                     const newFilters = {};
                     const fieldMap = new Map(this.db.schema.map(f => [f.key, f]));
                     if (resp.filters && typeof resp.filters === 'object') {
                         for (const [k, v] of Object.entries(resp.filters)) {
                             const field = fieldMap.get(k);
-                            if (!field) continue; // campo desconocido — ignorar
+                            if (!field) continue;
                             if (field.type === 'select' && field.options && !field.options.includes(v)) continue;
                             newFilters[k] = v;
                         }
                     }
                     this.activeFilters = newFilters;
 
-                    // Aplicar texto de búsqueda si la IA lo devolvió.
                     const searchText = (typeof resp.search === 'string') ? resp.search : '';
                     if (searchText) {
-                        // Cambiar a modo Search para que el usuario VEA el texto aplicado y pueda
-                        // editarlo con la barra normal. setSearchChatMode limpia el input, así que
-                        // ponemos el valor DESPUÉS del cambio de modo.
+                        // Cambiar a Search para que el texto aplicado sea visible y editable.
                         this.setSearchChatMode('search');
                         document.getElementById('search-input').value = searchText;
                     } else {
-                        // Sin búsqueda: limpia el input y mantiene el modo chat para que el usuario
-                        // pueda lanzar otra petición sin más.
                         promptInput.value = '';
                     }
                     this.renderFilters();
                     this.renderTable(searchText);
 
-                    // Feedback al usuario
                     if (resp.message) {
                         this.showToast(resp.message);
                     } else {
@@ -2982,7 +3089,7 @@ RULES:
                         this.showToast(`Filtered: ${count} result${count === 1 ? '' : 's'}`);
                     }
                 } catch (err) {
-                    console.error('AI filter error:', err);
+                    console.error('AI chat error:', err);
                     this.showToast('AI Error — check console');
                 } finally {
                     btn.disabled = false; btn.textContent = 'Send';

@@ -35,10 +35,10 @@
             line-height: 1.5;
             min-width: fit-content;
         }
-        /* ─── APP CONTAINER ─── */
+        
         #app-container { display: none; }
         .content-wrapper { max-width: 100%; margin: 0 auto; padding: 24px 20px 48px; }
-        /* ─── STICKY HEADER ─── */
+        
         .app-header {
             background: var(--header-bg);
             position: sticky;
@@ -73,7 +73,7 @@
             flex-wrap: wrap;
             align-items: center;
         }
-        /* ─── BUTTONS ─── */
+        
         .btn {
             padding: 6px 13px;
             border-radius: var(--radius);
@@ -105,8 +105,7 @@
             background: rgba(255,255,255,0.14);
             color: white;
         }
-        /* Pill toggles inside the header inherit the dark theme.
-           Override fixed 38px height to match regular header buttons. */
+        
         .header-actions .pill-toggle {
             height: auto;
             border-color: rgba(255,255,255,0.15);
@@ -164,7 +163,7 @@
             flex-shrink: 0;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        /* ─── KPI SECTION ─── */
+        
         .kpi-container { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
         .kpi-card {
             background: var(--surface);
@@ -189,13 +188,13 @@
             color: var(--text); line-height: 1;
         }
         .kpi-value.highlight { color: var(--primary); }
-        /* Estilos para KPI tipo Select (Distribución) */
+        
         .kpi-dist-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
         .kpi-dist-row { display: flex; flex-direction: column; gap: 2px; }
         .kpi-dist-info { display: flex; justify-content: space-between; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); }
         .kpi-dist-bar-bg { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
         .kpi-dist-bar-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s ease; }
-        /* ─── FILTER SECTION ─── */
+        
         .filter-section {
             margin-bottom: 14px; display: none;
             background: var(--surface);
@@ -226,7 +225,7 @@
         }
         .filter-chip:hover { background: var(--border); color: var(--text); }
         .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        /* ─── LIST VIEW TABS ─── */
+        
         .list-tabs {
             display: flex;
             border-bottom: 2px solid var(--border);
@@ -252,7 +251,7 @@
         .list-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
         .record-tab-x { opacity: 0.4; font-size: 9px; padding: 1px 3px; border-radius: 2px; transition: opacity 0.12s, background 0.12s; }
         .record-tab-x:hover { opacity: 1; background: rgba(220,38,38,0.12); color: var(--danger); }
-        /* ─── SCHEMA MANAGER ─── */
+        
         .schema-list {
             display: flex; flex-direction: column; gap: 5px;
             margin-bottom: 12px; max-height: 280px; overflow-y: auto;
@@ -298,7 +297,7 @@
             border: 1px solid var(--border);
         }
         .add-options.show, .add-kpi-options.show { display: block; }
-        /* ─── VIEWS & TRANSITIONS ─── */
+        
         .view-section { display: none; }
         .view-section.active {
             display: block;
@@ -308,7 +307,7 @@
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* ─── TABLE ─── */
+        
         .table-container {
             background: var(--surface);
             border-radius: var(--radius);
@@ -350,7 +349,7 @@
             border-color: var(--primary);
             background: white;
         }
-        /* ─── FORMS ─── */
+        
         .form-card {
             background: var(--surface); padding: 26px;
             border-radius: var(--radius); box-shadow: var(--shadow);
@@ -390,7 +389,7 @@
             box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
         textarea.form-input { resize: vertical; min-height: 2.5em; }
-        /* Detail view */
+        
         .detail-row {
             display: flex; align-items: baseline; padding: 7px 0;
             border-bottom: 1px solid var(--border); font-size: 14px; gap: 12px;
@@ -415,12 +414,12 @@
             width: 15px; height: 15px; flex-shrink: 0;
             cursor: pointer; accent-color: var(--primary);
         }
-        /* ─── SEARCH / CHAT BAR ROW ─── */
+        
         .search-bar-row {
             display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
         }
         .search-bar-row .search-bar { margin-bottom: 0; flex: 1; }
-        /* Chat bar row: separate input dedicated to AI chat. Click clears its content. */
+        
         .chat-bar-row {
             display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
         }
@@ -439,7 +438,7 @@
         }
         .chat-bar::placeholder { color: var(--text-light); font-style: italic; }
         #chat-send-btn { flex-shrink: 0; }
-        /* ─── PILL TOGGLES (shared style for both View/Edit and Search/Chat) ─── */
+        
         .pill-toggle {
             display: flex; flex-shrink: 0;
             border: 1px solid var(--border-strong); border-radius: var(--radius);
@@ -455,7 +454,7 @@
         .pill-toggle-btn.active-danger { background: var(--danger); color: #fff; }
         .pill-toggle-btn.pill-new { background: var(--primary); color: #fff; }
         .pill-toggle-btn.pill-new:hover { background: var(--primary-hover); }
-        /* Search */
+        
         .search-bar {
             width: 100%; padding: 10px 14px; margin-bottom: 14px;
             border: 1px solid var(--border); border-radius: var(--radius);
@@ -469,7 +468,7 @@
             box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
         .search-bar::placeholder { color: var(--text-light); }
-        /* ─── MODALS ─── */
+        
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(20,16,12,0.5); display: none;
@@ -501,7 +500,7 @@
             font-size: 12px; color: var(--text-light);
             padding: 3px 24px 0;
         }
-        /* Tabs */
+        
         .modal-tabs {
             display: flex; border-bottom: 1px solid var(--border);
             padding: 0 24px; margin-top: 14px; gap: 0;
@@ -524,7 +523,7 @@
             display: flex; gap: 8px;
         }
         .modal-footer .btn { flex: 1; justify-content: center; }
-        /* Modal Configuración Full Screen */
+        
         #config-modal .modal {
             width: 100%;
             max-width: 100%;
@@ -538,7 +537,7 @@
             flex: 1;
             overflow-y: auto;
         }
-        /* ─── STARTUP SCREEN ─── */
+        
         .startup-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); display: flex;
@@ -576,7 +575,7 @@
         .recent-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
         .recent-btn-clear { color: var(--danger) !important; margin-top: 6px; }
         .recent-btn-clear:hover { background: #fef2f2 !important; border-color: var(--danger) !important; color: var(--danger) !important; }
-        /* ─── TOAST ─── */
+        
         .toast {
             position: fixed; bottom: 22px; right: 22px;
             background: var(--text); color: #f4f1ec;
@@ -590,7 +589,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .toast.show { opacity: 1; transform: translateY(0); }
-        /* ─── COPY MODAL ─── */
+        
         .checkbox-list {
             display: flex; flex-direction: column; gap: 5px;
             max-height: 240px; overflow-y: auto; margin: 10px 0;
@@ -602,7 +601,7 @@
             padding: 5px 6px; cursor: pointer; border-radius: 4px;
         }
         .checkbox-item:hover { background: var(--bg); }
-        /* ─── AI CHAT BOX ─── */
+        
         #ai-assistant-box {
             background: var(--surface); padding: 18px 24px;
             border-radius: var(--radius); border: 1px solid var(--border);
@@ -629,7 +628,7 @@
             font-size: 11px; color: var(--text-light);
             display: block; margin-top: 3px;
         }
-        /* ─── AI ANSWER CARD (Q&A mode) ─── */
+        
         .ai-answer-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -678,7 +677,7 @@
             background: var(--bg);
             color: var(--text);
         }
-        /* ─── CONFLICT MODAL ─── */
+        
         #conflict-modal .modal { max-width: 760px; }
         .conflict-intro {
             font-size: 13px; color: var(--text-light); margin-bottom: 14px;
@@ -721,43 +720,32 @@
         }
         .conflict-option-mine { border-left: 3px solid var(--primary); }
         .conflict-option-theirs { border-left: 3px solid var(--warning); }
-        /* ─── PORTRAIT MODE ───────────────────────────────────
-           Activates when width <= height (vertical phone OR narrow PC window).
-           Goal: everything fits the screen, only the NAME column is shown,
-           buttons/toggles/forms compact and wrap. */
+        
         @media (orientation: portrait) {
             body { font-size: 12px; }
 
-            /* Cinturón de seguridad: nada dentro del body puede forzar scroll horizontal.
-               Si algún hijo intenta crecer más que el viewport, se recorta sin romper layout. */
-            html, body { overflow-x: hidden; max-width: 100vw; }
+html, body { overflow-x: hidden; max-width: 100vw; }
 
-            /* Header compact */
-            .app-header-inner { padding: 0 10px; height: 48px; gap: 6px; }
+.app-header-inner { padding: 0 10px; height: 48px; gap: 6px; }
             .header-info h1 { font-size: 14px; letter-spacing: 1.5px; }
             .header-actions { gap: 4px; }
             .header-actions .btn { padding: 5px 9px; font-size: 10px; }
             .header-actions .pill-toggle-btn { padding: 5px 9px; font-size: 10px; }
 
-            /* Content area */
-            .content-wrapper { padding: 12px 8px 24px; max-width: 100%; }
+.content-wrapper { padding: 12px 8px 24px; max-width: 100%; }
 
-            /* Body shouldn't try to be wider than the viewport */
-            body { min-width: 0; }
+body { min-width: 0; }
 
-            /* Search bar row wraps gracefully */
-            .search-bar-row { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.search-bar-row { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
             .search-bar { padding: 8px 10px; font-size: 13px; }
             .pill-toggle { height: 30px; }
             .pill-toggle-btn { padding: 0 8px; font-size: 10px; letter-spacing: 0.05em; }
-            /* Chat bar row */
+            
             .chat-bar-row { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
             .chat-bar { padding: 8px 10px; font-size: 13px; }
             #chat-send-btn { padding: 5px 10px; font-size: 10px; }
 
-            /* Filters compact + wrapping inside each group (clave para que no
-               desborde la pantalla cuando un filtro tiene muchas opciones). */
-            .filter-section { padding: 6px 10px; max-width: 100%; }
+.filter-section { padding: 6px 10px; max-width: 100%; }
             .filter-body { gap: 6px 10px; }
             .filter-group {
                 flex-wrap: wrap;
@@ -768,18 +756,15 @@
             }
             .filter-chip { font-size: 10px; padding: 1px 6px; }
 
-            /* List tabs compact */
-            .list-tabs { margin-bottom: 10px; flex-wrap: wrap; }
+.list-tabs { margin-bottom: 10px; flex-wrap: wrap; }
             .list-tab { padding: 8px 12px; font-size: 11px; letter-spacing: 0.06em; }
-            /* EXCEL tab makes no sense on a narrow screen — hide it */
+            
             .list-tab[data-list-tab="excel"] { display: none; }
 
-            /* KPI cards: each on its own row, compact */
-            .kpi-card { padding: 10px 14px; flex: 1 1 100%; }
+.kpi-card { padding: 10px 14px; flex: 1 1 100%; }
             .kpi-value { font-size: 24px; }
 
-            /* TABLES: tight, only first column (Name) visible */
-            table { min-width: 0 !important; width: 100% !important; }
+table { min-width: 0 !important; width: 100% !important; }
             .table-container { overflow-x: hidden; }
             #data-table th:not(:first-child),
             #data-table td:not(:first-child),
@@ -789,8 +774,7 @@
             }
             th, td { padding: 8px 10px; font-size: 13px; }
 
-            /* Form: inputs stack vertically, full width */
-            .form-card, #ai-assistant-box { padding: 14px; }
+.form-card, #ai-assistant-box { padding: 14px; }
             .form-group {
                 flex-direction: column;
                 align-items: stretch;
@@ -800,8 +784,7 @@
             .form-label { min-width: 0; }
             .form-input, .form-select { font-size: 13px; padding: 8px 10px; }
 
-            /* Form action buttons wrap if many */
-            .form-card > div[style*="space-between"] {
+.form-card > div[style*="space-between"] {
                 flex-wrap: wrap;
                 gap: 8px;
                 margin-bottom: 14px !important;
@@ -810,14 +793,12 @@
                 flex-wrap: wrap; gap: 4px;
             }
 
-            /* Detail rows stack */
-            .detail-row {
+.detail-row {
                 flex-direction: column; gap: 4px; align-items: flex-start;
             }
             .detail-row-key { min-width: 0; }
 
-            /* Modals: use almost the whole screen */
-            .modal { width: 96%; max-width: 96%; }
+.modal { width: 96%; max-width: 96%; }
             .modal-header { padding: 14px 16px 0; }
             .modal-context-line { padding: 3px 16px 0; }
             .modal-tabs { padding: 0 12px; flex-wrap: wrap; }
@@ -825,8 +806,7 @@
             .modal-tab-panel { padding: 12px 14px; }
             .modal-footer { padding: 10px 14px; flex-wrap: wrap; }
 
-            /* Toast spans available width nicely */
-            .toast {
+.toast {
                 right: 10px; bottom: 10px; left: 10px;
                 text-align: center; font-size: 12px;
             }
@@ -868,6 +848,7 @@
                         <button class="pill-toggle-btn" id="toggle-view-btn">View</button>
                     </div>
                     <button class="btn" id="copy-clipboard-btn" title="Copy visible data to clipboard">Copy</button>
+                    <button class="btn btn-danger-solid" id="purge-btn" title="Delete all visible records">Purge</button>
                     <button class="btn" id="config-btn">Config</button>
                 </div>
             </div>
@@ -878,7 +859,7 @@
                     <input type="text" class="search-bar" id="search-input" placeholder="Search records...">
                 </div>
                 <div class="chat-bar-row" id="chat-bar-row" style="display:none;">
-                    <input type="text" class="chat-bar" id="chat-input" placeholder='Ask or filter: "5 most expensive", "fighting games"...'>
+                    <input type="text" class="chat-bar" id="chat-input" placeholder="IA chat...">
                     <button class="btn" id="chat-send-btn">Send</button>
                 </div>
                 <div id="filter-container" class="filter-section"></div>
@@ -1169,12 +1150,8 @@
     </div>
     <div class="toast" id="toast">Message</div>
     <script>
-        // ════════════════════════════════════════════════════════════════
-        //  EPOCH SENTINEL: schema vacío inicial nunca debe ganar al cloud.
-        //  Si schemaModified === EPOCH_SENTINEL, el merge SIEMPRE prefiere
-        //  el schema del cloud cuando éste tiene contenido.
-        // ════════════════════════════════════════════════════════════════
-        const EPOCH_SENTINEL = '1970-01-01T00:00:00.000Z';
+
+const EPOCH_SENTINEL = '1970-01-01T00:00:00.000Z';
 
         class ContextApp {
             constructor() {
@@ -1199,18 +1176,15 @@
                 this.saveAndClose = false;
                 this.saveAndClone = false;
 
-                // ─── Per-tab "edit from view" override ──────────────
-                // Records whose tab is in edit mode despite global viewMode being 'view'.
                 this.tempEditIds = new Set();
 
-                // ─── Sync safety state ───────────────────────────────
-                this.firstFetchDone = false;   // bloquea PUTs antes del primer GET exitoso
-                this.syncInFlight = false;     // mutex para evitar fetch/sync concurrentes
-                this.pendingSync = false;      // marca para reintentar tras un sync en curso
-                this.pendingConflicts = [];    // cola de items con conflicto pendiente
-                this.activeConflict = null;    // conflicto que se está resolviendo en el modal
-                this.opGen = 0;                // generation token: ↑ en cada loadContext.
-                                                // Async ops capturan al inicio y abortan si cambió.
+                this.firstFetchDone = false;
+                this.syncInFlight = false;
+                this.pendingSync = false;
+                this.pendingConflicts = [];
+                this.activeConflict = null;
+                this.opGen = 0;
+
                 this.SCHEMA_HISTORY_KEY_SUFFIX = 'schema_history';
                 this.SCHEMA_HISTORY_MAX = 10;
 
@@ -1218,32 +1192,31 @@
             }
             debounceSync() {
                 clearTimeout(this.syncDebounceTimer);
-                // Reducido de 5s a 2s. Menos ventana de pérdida si el usuario cierra pestaña.
+
                 this.syncDebounceTimer = setTimeout(() => this.mergeAndSync(), 2000);
             }
-            // ─── Helper to compute checklist completion percentage ───
+
             calculateChecklistPct(value) {
                 const lines = (value || '').split('\n').filter(l => l.trim());
                 if (lines.length === 0) return '0%';
                 const completed = lines.filter(l => l.trim().startsWith('-')).length;
                 return Math.round((completed / lines.length) * 100) + '%';
             }
-            // ─── Version helpers ─────────────────────────────────
-            // Items sin `version` se tratan como v1 (back-compat).
+
             getItemVersion(item) {
                 return (item && typeof item.version === 'number') ? item.version : 1;
             }
-            // Devuelve una copia del item sin metadatos para comparar contenido.
+
             stripItemMetadata(item) {
                 if (!item) return {};
                 const { version, lastModified, deleted, ...rest } = item;
                 return rest;
             }
-            // ¿Tienen el mismo contenido (ignorando metadatos)?
+
             itemsContentEqual(a, b) {
                 const ca = this.stripItemMetadata(a);
                 const cb = this.stripItemMetadata(b);
-                // Ordenar claves para JSON estable
+
                 const sortedJSON = (obj) => {
                     const keys = Object.keys(obj).sort();
                     const out = {};
@@ -1252,40 +1225,39 @@
                 };
                 return sortedJSON(ca) === sortedJSON(cb);
             }
-            // Sube version y lastModified de un item antes de guardarlo localmente.
+
             bumpItemVersion(item) {
                 item.version = this.getItemVersion(item) + 1;
                 item.lastModified = new Date().toISOString();
                 return item;
             }
-            // ─── Viewport / orientation helpers ──────────────────
+
             isPortrait() {
                 return window.matchMedia('(orientation: portrait)').matches;
             }
-            // Disable pinch-zoom in portrait (where layout is already optimized for the screen),
-            // and react to orientation change to hide the EXCEL tab gracefully.
+
             setupViewportGuards() {
                 if (this._viewportGuardsInstalled) return;
                 this._viewportGuardsInstalled = true;
-                // iOS gesture events: block pinch in portrait
+
                 const blockIfPortrait = (e) => {
                     if (this.isPortrait()) e.preventDefault();
                 };
                 document.addEventListener('gesturestart', blockIfPortrait);
                 document.addEventListener('gesturechange', blockIfPortrait);
                 document.addEventListener('gestureend', blockIfPortrait);
-                // Generic multi-touch (Android/others): block pinch when 2+ fingers in portrait
+
                 document.addEventListener('touchmove', (e) => {
                     if (e.touches.length > 1 && this.isPortrait()) e.preventDefault();
                 }, { passive: false });
-                // If user was on EXCEL tab and rotates to portrait, fall back to LIST
+
                 window.addEventListener('resize', () => {
                     if (this.activeListTab === 'excel' && this.isPortrait()) {
                         this.switchListTab('data');
                     }
                 });
             }
-            // ─── Helper to build initial values for a new record using schema defaults ───
+
             getDefaultsForNewRecord() {
                 const initialValues = {};
                 this.db.schema.forEach(f => {
@@ -1295,15 +1267,15 @@
                 });
                 return initialValues;
             }
-            // ─── Schema history (local snapshots for emergency recovery) ───
+
             pushSchemaHistory() {
                 if (!this.context) return;
-                if (!this.db.schema || this.db.schema.length === 0) return; // nunca guardes un vacío
+                if (!this.db.schema || this.db.schema.length === 0) return;
                 try {
                     const key = this.getStorageKey(this.SCHEMA_HISTORY_KEY_SUFFIX);
                     const raw = localStorage.getItem(key);
                     let arr = raw ? JSON.parse(raw) : [];
-                    // Evita duplicar si el último snapshot es idéntico
+
                     const last = arr[0];
                     const currentJson = JSON.stringify(this.db.schema);
                     if (last && JSON.stringify(last.schema) === currentJson) return;
@@ -1333,7 +1305,13 @@
                 if (urlContext) {
                     if (importBin) {
                         this.context = urlContext;
-                        localStorage.setItem(this.getStorageKey('bin_id'), importBin);
+                        const existingBin = localStorage.getItem(this.getStorageKey('bin_id'));
+
+                        const accept = !existingBin || existingBin === importBin ||
+                            confirm(`La URL contiene un Bin ID distinto al guardado para "${urlContext}".\n\nGuardado: ${existingBin}\nURL: ${importBin}\n\n¿Reemplazar?`);
+                        if (accept) {
+                            localStorage.setItem(this.getStorageKey('bin_id'), importBin);
+                        }
                         const newUrl = new URL(window.location);
                         newUrl.searchParams.delete('bin-id');
                         window.history.replaceState({}, '', newUrl);
@@ -1343,13 +1321,12 @@
                     this.showStartupScreen();
                 }
 
-                // Flush pendiente al cerrar pestaña: si hay debounce activo, sincroniza ya
                 window.addEventListener('beforeunload', (e) => {
                     if (this.syncDebounceTimer) {
                         clearTimeout(this.syncDebounceTimer);
-                        // Aviso al usuario de que hay cambios sin guardar en cloud
+
                         if (this.syncEnabled) {
-                            // Intentamos sincronizar de forma síncrona-best-effort
+
                             this.mergeAndSync();
                             e.preventDefault();
                             e.returnValue = '';
@@ -1443,36 +1420,36 @@
                 document.title = this.context;
                 document.getElementById('app-title').textContent = this.context;
                 document.getElementById('app-container').style.display = 'block';
-                // Reset sync state on context change
+
                 this.firstFetchDone = false;
                 this.syncInFlight = false;
                 this.pendingSync = false;
                 this.pendingConflicts = [];
                 this.activeConflict = null;
                 this.tempEditIds = new Set();
-                // Invalidar operaciones async en vuelo del contexto anterior.
-                // Cuando vuelvan tras su await, verán que opGen cambió y abortarán
-                // sin escribir resultados al contexto nuevo.
+
                 this.opGen++;
-                // Cancelar debounce pendiente del contexto anterior
+
                 clearTimeout(this.syncDebounceTimer);
                 this.syncDebounceTimer = null;
                 document.getElementById('conflict-modal').classList.remove('show');
                 document.getElementById('ai-answer-card').style.display = 'none';
-                this.db = { schema: [], items: [], schemaModified: EPOCH_SENTINEL };
+                this.db = { schema: [], items: [], schemaModified: EPOCH_SENTINEL, context: contextName };
                 this.openRecords = [];
                 this.activeRecordId = null;
                 this.renderRecordTabs();
                 const defMode = localStorage.getItem(this.getStorageKey('default_mode')) || 'edit';
                 const defTab = localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis';
                 this.viewMode = localStorage.getItem(this.getStorageKey('view_mode')) || defMode;
-                
+
                 this.setSyncState(true);
                 this.bindEvents();
                 this.loadLocalData();
                 this.applyMode();
                 this.renderFilters();
                 this.renderTable();
+
+                this.triggerDailyBackup();
                 const hasGeminiKey = !!localStorage.getItem('global_gemini_api_key');
                 document.getElementById('chat-bar-row').style.display = hasGeminiKey ? 'flex' : 'none';
                 if (this.activeRecordId) {
@@ -1484,7 +1461,7 @@
                         else this.viewItem(this.activeRecordId);
                     }
                 } else {
-                    // En portrait, EXCEL no se muestra: nunca aterrizar ahí.
+
                     const safeTab = (this.isPortrait() && defTab === 'excel') ? 'data' : defTab;
                     this.switchListTab(safeTab);
                 }
@@ -1515,10 +1492,10 @@
                     this.editItem(this.activeRecordId);
                 });
                 document.getElementById('add-btn').addEventListener('click', () => this.openEditor());
+                document.getElementById('purge-btn').addEventListener('click', () => this.purgeVisible());
                 document.getElementById('config-btn').addEventListener('click', () => this.openConfig());
                 document.getElementById('back-btn').addEventListener('click', () => {
-                    // Si estábamos en edición temporal desde vista, Cancel solo vuelve a la
-                    // vista detalle (no cierra la pestaña).
+
                     if (this.currentItemId && this.tempEditIds.has(this.currentItemId)) {
                         this.tempEditIds.delete(this.currentItemId);
                         this.viewItem(this.currentItemId);
@@ -1546,7 +1523,7 @@
                 });
                 document.getElementById('chat-send-btn').addEventListener('click', () => this.autoFillWithAI());
                 document.getElementById('ai-answer-close-btn').addEventListener('click', () => this.hideAiAnswer());
-                // Click en el input de chat = vaciar siempre. Sencillez sobre todo.
+
                 document.getElementById('chat-input').addEventListener('click', (e) => {
                     e.target.value = '';
                 });
@@ -1563,7 +1540,7 @@
                 });
                 document.getElementById('save-token-btn').addEventListener('click', () => this.saveQuickToken());
                 document.getElementById('cancel-token').addEventListener('click', () => document.getElementById('token-modal').classList.remove('show'));
-                // Conflict modal wiring
+
                 document.getElementById('conflict-apply').addEventListener('click', () => this.applyConflictResolution());
                 document.getElementById('conflict-keep-all-mine').addEventListener('click', () => this.applyConflictResolution('mine'));
                 document.getElementById('conflict-keep-all-theirs').addEventListener('click', () => this.applyConflictResolution('theirs'));
@@ -1603,7 +1580,7 @@
                     btnOff.classList.add('active-danger');
                 }
                 this.updateSyncButton('idle');
-                // Push pending local changes immediately when going Off → On
+
                 if (isEnabled && wasOff) {
                     this.mergeAndSync();
                 }
@@ -1648,8 +1625,8 @@
                         this.showToast('Key saved');
                         this.checkSyncReady('load');
                     }
-                } else { 
-                    this.showToast('Please enter a value'); 
+                } else {
+                    this.showToast('Please enter a value');
                 }
             }
             openCopyModal() {
@@ -1670,6 +1647,10 @@
                 document.getElementById('confirm-copy').focus();
             }
             checkFilterMatch(itemVal, filterVal) {
+                if (filterVal === 'VACIO') {
+
+                    return !itemVal;
+                }
                 if (typeof filterVal === 'string' && filterVal.startsWith('RANGO:')) {
                     const parts = filterVal.split(':');
                     const val = Number(itemVal);
@@ -1743,17 +1724,32 @@
                 const sRaw = localStorage.getItem(this.getStorageKey('schema'));
                 const iRaw = localStorage.getItem(this.getStorageKey('items'));
                 const smRaw = localStorage.getItem(this.getStorageKey('schemaModified'));
+                this.lastBackup = localStorage.getItem(this.getStorageKey('last_backup')) || '';
                 this.db.schema = sRaw ? JSON.parse(sRaw) : [];
-                // ⚠️  CRÍTICO: si no hay schemaModified guardado, usar EPOCH_SENTINEL
-                // (no Date.now()), de modo que un cliente nuevo sin datos NUNCA gane
-                // al cloud por simplemente abrir la app.
+
                 this.db.schemaModified = smRaw || EPOCH_SENTINEL;
                 this.db.schema = this.db.schema.filter(f => f.key.replace(/^\uFEFF/, '').trim().toLowerCase() !== 'name');
+
+                let polluted = false;
+                this.db.schema.forEach(f => {
+                    if (Array.isArray(f.options) && f.options.includes('VACIO')) {
+                        f.options = f.options.filter(o => o !== 'VACIO');
+                        polluted = true;
+                    }
+                });
+                if (polluted) {
+                    localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
+                }
                 const loadedItems = iRaw ? JSON.parse(iRaw) : [];
                 this.db.items = loadedItems.filter(i => i && i.id && i.name);
                 this.updateKPIs(this.db.items);
             }
             saveLocalData() {
+
+                if (this.db.context && this.db.context !== this.context) {
+                    console.error('[saveLocalData abort] db.context !== context', this.db.context, this.context);
+                    return;
+                }
                 localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
                 localStorage.setItem(this.getStorageKey('items'), JSON.stringify(this.db.items));
                 localStorage.setItem(this.getStorageKey('schemaModified'), this.db.schemaModified || EPOCH_SENTINEL);
@@ -1764,37 +1760,38 @@
                 const binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
                 if (this.syncInFlight) {
-                    // Otro sync en curso; reintentamos al terminar
+
                     this.pendingSync = true;
                     return;
                 }
-                const myGen = this.opGen; // ← captura generación al inicio
+                const myGen = this.opGen;
                 this.syncInFlight = true;
                 this.updateSyncButton('loading');
                 try {
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Access-Key': apiKey } });
                     if (!res.ok) throw new Error('Fetch failed');
                     const data = await res.json();
-                    // ⚠️  Si el contexto cambió mientras esperábamos la respuesta, abortar.
-                    // Aplicar este resultado al contexto nuevo escribiría datos del bin antiguo
-                    // en localStorage del contexto nuevo (causa de la corrupción cruzada).
+
                     if (this.opGen !== myGen) return;
                     const record = data.record || {};
                     const meta = record.meta || {};
+
+                    if (meta.contextName && meta.contextName !== this.context) {
+                        this.showToast(`⚠️ Este bin pertenece a "${meta.contextName}", no a "${this.context}". Sync abortado.`);
+                        this.updateSyncButton('error');
+                        return;
+                    }
                     if (meta.defaultMode) localStorage.setItem(this.getStorageKey('default_mode'), meta.defaultMode);
                     if (meta.defaultTab) localStorage.setItem(this.getStorageKey('default_tab'), meta.defaultTab);
                     if (meta.geminiModel) localStorage.setItem(this.getStorageKey('gemini_model'), meta.geminiModel);
                     if (meta.aiGlobal !== undefined) localStorage.setItem(this.getStorageKey('ai_global'), meta.aiGlobal);
                     if (meta.aiEdit !== undefined) localStorage.setItem(this.getStorageKey('ai_edit'), meta.aiEdit);
-                    if (meta.lastBackup) this.lastBackup = meta.lastBackup;
+                    if (meta.lastBackup && (!this.lastBackup || meta.lastBackup > this.lastBackup)) {
 
-                    // ── Merge items por id, usando VERSION (no timestamp) ──
-                    // Reglas:
-                    //   1. Si solo existe en un lado → se conserva.
-                    //   2. Si existe en ambos con diferente version → gana el mayor.
-                    //   3. Si existe en ambos con MISMA version pero contenido distinto → CONFLICTO.
-                    //      Se mantiene el local en la vista, se encola el conflicto, y luego
-                    //      mergeAndSync detectará lo mismo y abrirá el modal de resolución.
+                        this.lastBackup = meta.lastBackup;
+                        localStorage.setItem(this.getStorageKey('last_backup'), meta.lastBackup);
+                    }
+
                     const cloudItems = Array.isArray(record) ? record : (record.items || []);
                     const cloudSchema = record.schema || [];
                     const cloudSchemaModified = meta.schemaModified || '';
@@ -1816,10 +1813,7 @@
                                 mergedItemsMap.set(li.id, li);
                                 localOnlyOrNewer = true;
                             } else if (lVer === cVer) {
-                                // Atajo rápido: si los timestamps difieren, es conflicto seguro
-                                // (dos dispositivos llegaron a la misma versión por caminos distintos).
-                                // Si los timestamps coinciden, comprobamos contenido por seguridad
-                                // — ese caso es prácticamente imposible pero lo cubrimos.
+
                                 if (li.lastModified !== ci.lastModified) {
                                     detectedConflicts.push({ id: li.id, mine: li, theirs: ci });
                                     mergedItemsMap.set(li.id, li);
@@ -1829,17 +1823,13 @@
                                     mergedItemsMap.set(li.id, li);
                                     localOnlyOrNewer = true;
                                 }
-                                // Si versión Y timestamp coinciden, son idénticos: nada que hacer.
+
                             }
-                            // lVer < cVer: cloud gana, ya está en el map.
+
                         }
                     });
                     const mergedItems = Array.from(mergedItemsMap.values()).filter(i => i && i.id && i.name);
 
-                    // ── Merge schema con protecciones ──
-                    // PARCHE 1: si el local está vacío y el cloud tiene contenido, GANA EL CLOUD.
-                    // PARCHE 2: schemaModified === EPOCH_SENTINEL marca "schema no inicializado",
-                    // por lo que cualquier cloud no vacío gana siempre.
                     const lSchemaTime = new Date(this.db.schemaModified || 0).getTime();
                     const cSchemaTime = new Date(cloudSchemaModified || 0).getTime();
                     let mergedSchema, mergedSchemaModified;
@@ -1860,9 +1850,6 @@
                         if (lSchemaTime > cSchemaTime) localOnlyOrNewer = true;
                     }
 
-                    // ⚠️  Última comprobación antes de aplicar resultados al estado local.
-                    // El merge anterior es síncrono, así que no debería poder cambiar el contexto,
-                    // pero defensa en profundidad.
                     if (this.opGen !== myGen) return;
 
                     this.db.items = mergedItems;
@@ -1875,12 +1862,12 @@
                     this.renderTable(document.getElementById('search-input').value);
                     this.updateSyncButton('success');
 
-                    // Marcar que ya se hizo el primer fetch exitoso
                     this.firstFetchDone = true;
 
-                    // Encolar conflictos detectados durante el merge y abrir modal si hay alguno.
+                    this.triggerDailyBackup();
+
                     if (detectedConflicts.length > 0) {
-                        // Evitar duplicar conflictos ya en cola
+
                         detectedConflicts.forEach(c => {
                             if (!this.pendingConflicts.some(p => p.id === c.id)) {
                                 this.pendingConflicts.push(c);
@@ -1891,12 +1878,8 @@
                         }
                     }
 
-                    // Si descubrimos cambios locales-only durante el merge, súbelos
-                    // (excepto si hay conflictos pendientes: en ese caso el sync se posterga).
                     if (localOnlyOrNewer && this.syncEnabled && this.pendingConflicts.length === 0) {
-                        // Diferimos con setTimeout para que termine este try/finally antes
-                        // (mergeAndSync respeta syncInFlight, así que lanzar dentro del mismo
-                        // tick podría chocar con la limpieza del finally).
+
                         setTimeout(() => { if (this.opGen === myGen) this.mergeAndSync(); }, 50);
                     }
                 } catch (e) {
@@ -1904,8 +1887,7 @@
                     this.updateSyncButton('error');
                     this.showToast('Auth error');
                 } finally {
-                    // Solo limpiar el mutex si seguimos siendo "los dueños" de esta operación.
-                    // Si el contexto cambió, el nuevo contexto ya tiene su propio syncInFlight=false.
+
                     if (this.opGen === myGen) {
                         this.syncInFlight = false;
                         if (this.pendingSync) {
@@ -1915,14 +1897,15 @@
                     }
                 }
             }
-            triggerDailyBackup(payload) {
-                // Backup diario silencioso DESACTIVADO por defecto.
-                // El usuario tiene un botón "Download Backup" en Config > Backup.
-                // (Se mantiene por compatibilidad; no descarga nada automáticamente).
-                return;
+            triggerDailyBackup() {
+
+                if (!this.db.items.length && !this.db.schema.length) return;
+                const today = new Date().toISOString().slice(0, 10);
+                if (this.lastBackup === today) return;
+                this.manualBackup();
             }
             manualBackup() {
-                // Backup manual completo, descarga el JSON del bin como está actualmente.
+
                 const payload = {
                     meta: {
                         defaultMode: localStorage.getItem(this.getStorageKey('default_mode')) || 'edit',
@@ -1944,7 +1927,10 @@
                 a.download = `${schemaName}-${today}-backup.json`;
                 a.click();
                 this.lastBackup = today;
+                localStorage.setItem(this.getStorageKey('last_backup'), today);
                 this.showToast('Backup downloaded');
+
+                if (this.syncEnabled) this.mergeAndSync();
             }
             async mergeAndSync() {
                 if (!this.syncEnabled) {
@@ -1954,12 +1940,9 @@
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY), binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey || !binId) return;
 
-                // ⚠️  PARCHE 3: si hay un bin configurado pero AÚN no hemos hecho un GET
-                // exitoso, no podemos subir nada. Si lo hiciéramos, podríamos pisar
-                // datos del cloud con un schema vacío local. Encolamos y salimos.
                 if (!this.firstFetchDone) {
                     console.warn('[sync] Postponed: initial fetch not yet complete');
-                    // Reintenta en breve, dando tiempo al fetch inicial
+
                     setTimeout(() => {
                         if (this.firstFetchDone) this.mergeAndSync();
                     }, 1500);
@@ -1967,11 +1950,11 @@
                 }
 
                 if (this.syncInFlight) {
-                    // Hay un sync corriendo; marcamos que hay otro pendiente
+
                     this.pendingSync = true;
                     return;
                 }
-                const myGen = this.opGen; // ← captura generación al inicio
+                const myGen = this.opGen;
                 this.syncInFlight = true;
                 this.updateSyncButton('loading');
 
@@ -1986,17 +1969,22 @@
                     this.syncInFlight = false;
                     return;
                 }
-                // ⚠️  Si el contexto cambió mientras esperábamos el GET, abortar SIN escribir nada.
-                // Mergear con this.db (datos del nuevo contexto) o PUT al binId antiguo causa la
-                // corrupción cruzada que vimos: schema/items de un contexto acaban en otro.
+
                 if (this.opGen !== myGen) return;
 
                 const cloudRecord = cloudData.record || {};
+
+                const cloudCtxName = (cloudRecord.meta && cloudRecord.meta.contextName) || null;
+                if (cloudCtxName && cloudCtxName !== this.context) {
+                    this.showToast(`⚠️ Este bin pertenece a "${cloudCtxName}", no a "${this.context}". Sync abortado.`);
+                    this.updateSyncButton('error');
+                    this.syncInFlight = false;
+                    return;
+                }
                 const cloudItems = Array.isArray(cloudRecord) ? cloudRecord : (cloudRecord.items || []);
                 const cloudSchema = cloudRecord.schema || [];
                 const cloudSchemaModified = (cloudRecord.meta && cloudRecord.meta.schemaModified) || '';
 
-                // ── Merge items: por VERSION, con detección de conflicto ──
                 const mergedItemsMap = new Map();
                 const detectedConflicts = [];
                 cloudItems.forEach(ci => mergedItemsMap.set(ci.id, ci));
@@ -2010,8 +1998,7 @@
                         if (lVer > cVer) {
                             mergedItemsMap.set(li.id, li);
                         } else if (lVer === cVer) {
-                            // Atajo: timestamps distintos con misma versión = conflicto seguro.
-                            // Si timestamps coinciden, contenido es la red de seguridad.
+
                             if (li.lastModified !== ci.lastModified) {
                                 detectedConflicts.push({ id: li.id, mine: li, theirs: ci });
                                 mergedItemsMap.set(li.id, li);
@@ -2024,7 +2011,6 @@
                 });
                 const mergedItems = Array.from(mergedItemsMap.values());
 
-                // ── Merge schema con MISMAS protecciones que en fetchCloudData ──
                 const localEmpty = !this.db.schema || this.db.schema.length === 0;
                 const cloudHasSchema = cloudSchema && cloudSchema.length > 0;
                 const localIsSentinel = this.db.schemaModified === EPOCH_SENTINEL;
@@ -2033,7 +2019,7 @@
 
                 let mergedSchema, mergedSchemaModified;
                 if ((localEmpty || localIsSentinel) && cloudHasSchema) {
-                    // Nunca subir un schema vacío sobre un schema cloud no vacío.
+
                     mergedSchema = cloudSchema;
                     mergedSchemaModified = cloudSchemaModified || new Date().toISOString();
                 } else if (cSchemaTime > lSchemaTime) {
@@ -2046,6 +2032,7 @@
 
                 const payload = {
                     meta: {
+                        contextName: this.context,
                         defaultMode: localStorage.getItem(this.getStorageKey('default_mode')) || 'edit',
                         defaultTab: localStorage.getItem(this.getStorageKey('default_tab')) || 'kpis',
                         lastBackup: this.lastBackup || '',
@@ -2058,10 +2045,6 @@
                     items: mergedItems
                 };
 
-                // ⚠️  Si hay conflictos detectados, ABORTAMOS el PUT.
-                // Subir ahora pisaría las ediciones del otro dispositivo. Mostramos el
-                // modal al usuario, y solo cuando resuelva todos los conflictos disparamos
-                // un nuevo mergeAndSync que ya no encontrará versiones colisionando.
                 if (detectedConflicts.length > 0) {
                     if (this.opGen !== myGen) return;
                     detectedConflicts.forEach(c => {
@@ -2069,8 +2052,7 @@
                             this.pendingConflicts.push(c);
                         }
                     });
-                    // Persiste el merge actual en local para que la UI no parpadee
-                    // (el local ya está dentro de mergedItems para los items en conflicto).
+
                     this.db.items = mergedItems;
                     this.db.schema = mergedSchema;
                     this.db.schemaModified = mergedSchemaModified;
@@ -2086,9 +2068,7 @@
                 }
 
                 try {
-                    // ⚠️  Antes de hacer el PUT, asegurarnos de que seguimos en el mismo contexto.
-                    // Si cambió, el binId capturado apunta al bin antiguo y los datos mergeados
-                    // pueden estar mezclados con el contexto nuevo.
+
                     if (this.opGen !== myGen) return;
                     const putRes = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                         method: 'PUT',
@@ -2096,8 +2076,7 @@
                         body: JSON.stringify(payload)
                     });
                     if (!putRes.ok) throw new Error('PUT failed');
-                    // ⚠️  Tras el PUT, el contexto pudo cambiar durante el await.
-                    // No aplicar el resultado al estado local si ya no somos los dueños.
+
                     if (this.opGen !== myGen) return;
 
                     this.db.items = mergedItems;
@@ -2124,31 +2103,34 @@
             }
             async createBin(apiKey) {
                 if (this.isProcessing) return; this.isProcessing = true;
+
+                const myGen = this.opGen;
+                const targetContext = this.context;
                 this.updateSyncButton('loading');
                 try {
                     const res = await fetch('https://api.jsonbin.io/v3/b', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Access-Key': apiKey, 'X-Bin-Name': this.context },
-                        body: JSON.stringify({ meta: {}, schema: [], items: [] })
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Access-Key': apiKey, 'X-Bin-Name': targetContext },
+                        body: JSON.stringify({ meta: { contextName: targetContext }, schema: [], items: [] })
                     });
                     const data = await res.json();
-                    localStorage.setItem(this.getStorageKey('bin_id'), data.metadata.id);
-                    // Marcamos firstFetchDone porque acabamos de crear el bin: no hay
-                    // contenido remoto previo que pisar.
+                    if (this.opGen !== myGen) { this.isProcessing = false; return; }
+                    localStorage.setItem(`ctx_${targetContext}_bin_id`, data.metadata.id);
+
                     this.firstFetchDone = true;
                     this.showToast('Database Created!'); this.isProcessing = false; this.fetchCloudData();
-                } catch (e) { this.updateSyncButton('error'); this.isProcessing = false; }
+                } catch (e) { if (this.opGen === myGen) this.updateSyncButton('error'); this.isProcessing = false; }
             }
             checkSyncReady(action = 'load') {
                 const apiKey = localStorage.getItem(this.GLOBAL_API_KEY), binId = localStorage.getItem(this.getStorageKey('bin_id'));
                 if (!apiKey) return;
-                if (!binId) { 
+                if (!binId) {
                     if (action === 'create') {
                         this.createBin(apiKey);
                     } else {
                         this.openBinModal();
                     }
-                } else { 
-                    this.fetchCloudData(); 
+                } else {
+                    this.fetchCloudData();
                 }
             }
             shareConfig() {
@@ -2165,17 +2147,24 @@
                 const body = document.createElement('div'); body.className = 'filter-body'; container.appendChild(body);
                 fields.forEach(field => {
                     const valid = new Set(), all = new Set(), search = document.getElementById('search-input').value.toLowerCase();
+                    let allHasEmpty = false, validHasEmpty = false;
                     this.db.items.forEach(item => {
+
+                        if (!item || !item.id || !item.name || item.deleted) return;
                         if (item[field.key]) all.add(item[field.key]);
+                        else allHasEmpty = true;
                         const matchesSearch = !search || Object.values(item).some(val => String(val).toLowerCase().includes(search));
                         const matchesOther = Object.entries(this.activeFilters).every(([k, v]) => k === field.key || this.checkFilterMatch(item[k], v));
-                        if (matchesSearch && matchesOther && item[field.key]) valid.add(item[field.key]);
+                        if (matchesSearch && matchesOther) {
+                            if (item[field.key]) valid.add(item[field.key]);
+                            else validHasEmpty = true;
+                        }
                     });
-                    
+
                     let opts = [];
                     let chipDisplay = {};
-                    
-                    if (field.type === 'number' && all.size > 0) {
+
+                    if (field.type === 'number' && (all.size > 0 || allHasEmpty)) {
                         const nums = Array.from(all).map(n => parseFloat(n)).filter(n => !isNaN(n));
                         if (nums.length > 0) {
                             const min = Math.min(...nums);
@@ -2197,36 +2186,46 @@
                                 chipDisplay[r3] = `${p2} - ${Math.round(max)}`;
                             }
                         }
+                    } else if (field.type === 'select' && field.options?.length > 0) {
+
+                        opts = field.options.filter(o => o !== 'VACIO');
                     } else {
-                        opts = (field.type === 'select' && field.options?.length > 0) ? field.options : Array.from(all).sort();
+                        opts = Array.from(all).sort();
                     }
-                    
+
+                    if (allHasEmpty) {
+                        opts.unshift('VACIO');
+                        chipDisplay['VACIO'] = 'NULL';
+                    }
+
                     if (opts.length === 0 && this.db.items.length > 0) return;
-                    
+
                     const group = document.createElement('div'); group.className = 'filter-group';
                     const label = document.createElement('span'); label.className = 'filter-group-label'; label.textContent = field.key; group.appendChild(label);
-                    
+
                     opts.forEach(opt => {
                         let hasValid = false;
-                        if (opt.startsWith && opt.startsWith('RANGO:')) {
+                        if (opt === 'VACIO') {
+                            hasValid = validHasEmpty;
+                        } else if (opt.startsWith && opt.startsWith('RANGO:')) {
                             hasValid = Array.from(valid).some(val => this.checkFilterMatch(val, opt));
                         } else {
                             hasValid = valid.has(opt);
                         }
-                        
+
                         if (!this.activeFilters[field.key] && !hasValid && this.db.items.length > 0) return;
-                        
-                        const chip = document.createElement('span'); 
-                        chip.className = `filter-chip ${this.activeFilters[field.key] === opt ? 'active' : ''}`; 
+
+                        const chip = document.createElement('span');
+                        chip.className = `filter-chip ${this.activeFilters[field.key] === opt ? 'active' : ''}`;
                         chip.textContent = chipDisplay[opt] !== undefined ? chipDisplay[opt] : opt;
-                        chip.onclick = () => { 
-                            if (this.activeFilters[field.key] === opt) { 
-                                delete this.activeFilters[field.key]; 
-                            } else { 
-                                this.activeFilters[field.key] = opt; 
-                            } 
-                            this.renderFilters(); 
-                            this.renderTable(document.getElementById('search-input').value); 
+                        chip.onclick = () => {
+                            if (this.activeFilters[field.key] === opt) {
+                                delete this.activeFilters[field.key];
+                            } else {
+                                this.activeFilters[field.key] = opt;
+                            }
+                            this.renderFilters();
+                            this.renderTable(document.getElementById('search-input').value);
                         };
                         group.appendChild(chip);
                     });
@@ -2248,7 +2247,7 @@
                         this.saveSchema(); this.renderSchemaList(); this.renderTable(document.getElementById('search-input').value);
                         if (this.syncEnabled) this.mergeAndSync();
                     });
-                    
+
                     let meta = field.type.toUpperCase();
                     if (field.type === 'number' && field.kpiMode) meta += ` (${field.kpiMode.toUpperCase()})`;
                     if (field.type === 'select' && field.kpiMode === 'dist') meta += ` (DIST)`;
@@ -2272,7 +2271,7 @@
                 document.getElementById('schema-new-airule').value = field.aiRule || '';
                 document.getElementById('schema-new-pct').checked = !!field.showPctInList;
                 document.getElementById('schema-new-default').value = field.defaultValue || '';
-                
+
                 document.getElementById('schema-options-row').classList.toggle('show', field.type === 'select');
                 document.getElementById('schema-kpi-row').classList.toggle('show', field.type === 'number' || field.type === 'select');
                 document.getElementById('schema-link-row').classList.toggle('show', field.type === 'link');
@@ -2332,13 +2331,12 @@
                 if (type === 'select') fieldDef.options = document.getElementById('schema-new-options').value.split(',').map(s => s.trim()).filter(s => s);
                 if (type === 'link') fieldDef.baseUrl = document.getElementById('schema-new-baseurl').value.trim();
                 if (type === 'checklist') fieldDef.showPctInList = document.getElementById('schema-new-pct').checked;
-                
-                // Default Value (only for text, number, select)
+
                 const defaultVal = document.getElementById('schema-new-default').value.trim();
                 if (['text', 'number', 'select'].includes(type) && defaultVal) {
                     fieldDef.defaultValue = defaultVal;
                 }
-                
+
                 const isKpiChecked = document.getElementById('schema-new-iskpi').checked;
                 if (type === 'number' && isKpiChecked) {
                     fieldDef.kpiMode = document.getElementById('schema-new-kpiop').value;
@@ -2354,21 +2352,21 @@
                 if (this.syncEnabled) this.mergeAndSync();
             }
             removeSchemaField(key) { if (confirm(`Delete ${key}?`)) { this.db.schema = this.db.schema.filter(f => f.key !== key); this.saveSchema(); this.renderSchemaList(); this.renderFilters(); this.renderTable(document.getElementById('search-input').value); if (this.syncEnabled) this.mergeAndSync(); } }
-            saveSchema() { 
+            saveSchema() {
                 this.db.schemaModified = new Date().toISOString();
                 localStorage.setItem(this.getStorageKey('schemaModified'), this.db.schemaModified);
-                localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema)); 
+                localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
                 this.pushSchemaHistory();
-                this.renderTable(document.getElementById('search-input').value); 
+                this.renderTable(document.getElementById('search-input').value);
             }
             updateKPIs(dataSet) {
                 const data = (dataSet || this.db.items).filter(i => i && i.id && i.name && !i.deleted);
                 const metricsContainer = document.getElementById('kpi-metrics-container');
                 const distContainer = document.getElementById('kpi-dist-container');
-                
+
                 metricsContainer.innerHTML = `<div class="kpi-card"><div class="kpi-label">Records</div><div class="kpi-value highlight">${data.length}</div></div>`;
                 distContainer.innerHTML = '';
-                
+
                 let hasDist = false;
                 this.db.schema.filter(f => f.kpiMode).forEach(field => {
                     if (field.type === 'number') {
@@ -2407,8 +2405,11 @@
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${this.context}_data.csv`; a.click();
             }
             importCSV(event) {
+
+                const myGen = this.opGen;
                 const reader = new FileReader();
                 reader.onload = (e) => {
+                    if (this.opGen !== myGen) return;
                     const rows = e.target.result.split('\n').filter(r => r.trim());
                     const headers = rows[0].split(';').map(h => h.trim().replace(/^"|"$/g, ''));
                     let importedCount = 0; let newFields = false;
@@ -2458,8 +2459,7 @@
                 const existing = this.openRecords.find(r => r.id === id);
                 if (existing) { existing.name = name; } else { this.openRecords.push({ id, name }); }
                 this.activeRecordId = id;
-                // Edit panel se muestra si: modo global es edit, o es nuevo, o el id está
-                // marcado como "edición temporal desde vista".
+
                 const isEdit = this.viewMode === 'edit' || id === '__new__' || this.tempEditIds.has(id);
                 document.getElementById('record-tab-edit-panel').style.display = isEdit ? '' : 'none';
                 document.getElementById('record-tab-detail-panel').style.display = isEdit ? 'none' : '';
@@ -2539,7 +2539,7 @@
                     }
                     return `<td>${i[f.key] || '—'}</td>`;
                 }).join('')}</tr>`).join('');
-                
+
                 this.renderExcelTable(filterText);
             }
             renderExcelTable(filterText = '') {
@@ -2559,18 +2559,18 @@
                     if (vA > vB) return this.sortDirection === 'asc' ? 1 : -1;
                     return 0;
                 });
-                
+
                 document.querySelector('#list-tab-excel .table-container').style.display = items.length ? 'block' : 'none';
                 document.getElementById('empty-state-excel').style.display = items.length ? 'none' : 'block';
-                
+
                 const fields = this.db.schema.filter(f => f.showInList && f.key !== 'name' && f.type !== 'link');
                 const arrow = (c) => this.sortColumn === c ? (this.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
-                
+
                 thead.innerHTML = `<tr><th onclick="app.handleSort('name')">Name${arrow('name')}</th>${fields.map(f => {
                     const headerLabel = (f.type === 'checklist' && f.showPctInList) ? `${f.key}%` : f.key;
                     return `<th onclick="app.handleSort('${f.key}')">${headerLabel}${arrow(f.key)}</th>`;
                 }).join('')}</tr>`;
-                
+
                 tbody.innerHTML = items.map(i => {
                     return `<tr>
                         <td><input type="text" class="excel-input" value="${(i.name || '').replace(/"/g, '&quot;')}" onchange="app.updateExcelCell('${i.id}', 'name', this.value)"></td>
@@ -2600,16 +2600,16 @@
                     if (this.syncEnabled) this.debounceSync();
                 }
             }
-            openEditor() { 
-                this.currentItemId = null; 
-                document.getElementById('form-title').textContent = 'New Record'; 
-                document.getElementById('field-name').value = ''; 
-                document.getElementById('delete-btn').style.display = 'none'; 
-                // Apply schema defaults to the new record
+            openEditor() {
+                this.currentItemId = null;
+                document.getElementById('form-title').textContent = 'New Record';
+                document.getElementById('field-name').value = '';
+                document.getElementById('delete-btn').style.display = 'none';
+
                 const initialValues = this.getDefaultsForNewRecord();
-                this.renderDynamicFormFields(initialValues); 
-                this.toggleAIAssistantBox(); 
-                this.openRecord('__new__'); 
+                this.renderDynamicFormFields(initialValues);
+                this.toggleAIAssistantBox();
+                this.openRecord('__new__');
             }
             editItem(id) { const item = this.db.items.find(i => i.id === id); if (!item) return; this.currentItemId = id; document.getElementById('form-title').textContent = 'Edit Record'; document.getElementById('field-name').value = item.name; document.getElementById('delete-btn').style.display = 'block'; this.renderDynamicFormFields(item); this.toggleAIAssistantBox(); this.openRecord(id); }
             renderDynamicFormFields(vals) {
@@ -2625,7 +2625,7 @@
                 });
             }
             saveItem(e) {
-                e.preventDefault(); 
+                e.preventDefault();
                 const name = document.getElementById('field-name').value.trim().toUpperCase();
                 const isNew = !this.currentItemId;
                 const existing = this.currentItemId ? this.db.items.find(i => i.id === this.currentItemId) : null;
@@ -2639,15 +2639,15 @@
                 document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select').forEach(el => item[el.dataset.key] = el.value);
                 if (this.currentItemId) {
                     const idx = this.db.items.findIndex(i => i.id === this.currentItemId);
-                    // Mezcla preservando claves antiguas, pero forzando version y lastModified
+
                     this.db.items[idx] = { ...this.db.items[idx], ...item };
                 }
-                else { 
-                    this.db.items.push(item); 
+                else {
+                    this.db.items.push(item);
                 }
-                this.saveLocalData(); 
+                this.saveLocalData();
                 this.showToast('Saved');
-                
+
                 if (this.saveAndClone) {
                     const clonedData = {};
                     document.querySelectorAll('#dynamic-fields-container .form-input, #dynamic-fields-container .form-select').forEach(el => {
@@ -2671,31 +2671,61 @@
                     if (recIdx !== -1) { this.openRecords[recIdx] = { id: item.id, name: item.name }; }
                     this.activeRecordId = item.id;
                     this.renderRecordTabs();
-                    // Si era una edición temporal desde el modo View, vuelve al panel detalle
-                    // con los datos recién guardados — el usuario sigue en View globalmente.
+
                     if (!isNew && this.tempEditIds.has(item.id)) {
                         this.tempEditIds.delete(item.id);
                         this.viewItem(item.id);
                     }
                 }
-                this.renderFilters(); 
+                this.renderFilters();
                 this.renderTable(document.getElementById('search-input').value);
                 if (this.syncEnabled) this.mergeAndSync();
             }
-            deleteItem() { 
-                if (this.currentItemId && confirm('Delete?')) { 
+            deleteItem() {
+                if (this.currentItemId && confirm('Delete?')) {
                     const itemIndex = this.db.items.findIndex(i => i.id === this.currentItemId);
                     if (itemIndex > -1) {
                         this.db.items[itemIndex].deleted = true;
                         this.bumpItemVersion(this.db.items[itemIndex]);
-                        this.saveLocalData(); 
-                        this.showToast('Deleted'); 
-                        this.closeRecord(this.currentItemId); 
-                        this.renderFilters(); 
+                        this.saveLocalData();
+                        this.showToast('Deleted');
+                        this.closeRecord(this.currentItemId);
+                        this.renderFilters();
                         this.renderTable(document.getElementById('search-input').value);
-                        if (this.syncEnabled) this.mergeAndSync(); 
+                        if (this.syncEnabled) this.mergeAndSync();
                     }
-                } 
+                }
+            }
+            purgeVisible() {
+
+                const search = document.getElementById('search-input').value.toLowerCase();
+                const visibleIds = this.db.items
+                    .filter(i => {
+                        if (!i || !i.id || !i.name || i.deleted) return false;
+                        const matchesSearch = !search || Object.values(i).some(v => String(v).toLowerCase().includes(search));
+                        const matchesFilters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
+                        return matchesSearch && matchesFilters;
+                    })
+                    .map(i => i.id);
+                if (visibleIds.length === 0) {
+                    this.showToast('No records to purge');
+                    return;
+                }
+                if (!confirm(`This will delete ${visibleIds.length} record${visibleIds.length === 1 ? '' : 's'} currently visible.\n\nThis action can only be undone manually. Continue?`)) {
+                    return;
+                }
+                const idSet = new Set(visibleIds);
+                this.db.items.forEach(item => {
+                    if (idSet.has(item.id)) {
+                        item.deleted = true;
+                        this.bumpItemVersion(item);
+                    }
+                });
+                this.saveLocalData();
+                this.showToast(`Purged ${visibleIds.length} record${visibleIds.length === 1 ? '' : 's'}`);
+                this.renderFilters();
+                this.renderTable(document.getElementById('search-input').value);
+                if (this.syncEnabled) this.mergeAndSync();
             }
             async openConfig() {
                 const modal = document.getElementById('config-modal'); document.getElementById('modal-context').textContent = this.context;
@@ -2709,7 +2739,6 @@
                 document.getElementById('conf-ai-ctx-list').value = localStorage.getItem(this.getStorageKey('ai_list')) || '';
                 document.getElementById('conf-last-backup').textContent = this.lastBackup || 'Never';
 
-                // Render schema history info
                 const history = this.getSchemaHistory();
                 const historyEl = document.getElementById('conf-schema-history');
                 if (history.length === 0) {
@@ -2727,7 +2756,7 @@
                 }
 
                 this.renderSchemaList(); modal.classList.add('show');
-                // Load Gemini Models
+
                 const geminiKey = localStorage.getItem('global_gemini_api_key');
                 const modelSelect = document.getElementById('conf-gemini-model');
                 if (geminiKey) {
@@ -2753,7 +2782,7 @@
                 if (!snap) { this.showToast('Version not found'); return; }
                 if (!confirm(`Restore schema with ${snap.schema.length} fields from ${new Date(snap.timestamp).toLocaleString()}? This will mark the schema as updated NOW so it propagates to cloud.`)) return;
                 this.db.schema = JSON.parse(JSON.stringify(snap.schema));
-                this.db.schemaModified = new Date().toISOString(); // Forzar que gane al cloud
+                this.db.schemaModified = new Date().toISOString();
                 localStorage.setItem(this.getStorageKey('schema'), JSON.stringify(this.db.schema));
                 localStorage.setItem(this.getStorageKey('schemaModified'), this.db.schemaModified);
                 this.pushSchemaHistory();
@@ -2766,8 +2795,13 @@
                 const apiKey = document.getElementById('conf-api-key').value.trim();
                 const binId = document.getElementById('conf-bin-id').value.trim();
                 const oldBinId = localStorage.getItem(this.getStorageKey('bin_id')) || '';
-                
-                if (apiKey) localStorage.setItem(this.GLOBAL_API_KEY, apiKey); 
+
+                if (binId && oldBinId && binId !== oldBinId) {
+                    const ok = confirm(`Vas a reemplazar el Bin ID de "${this.context}".\n\nViejo: ${oldBinId}\nNuevo: ${binId}\n\n¿Continuar?`);
+                    if (!ok) return;
+                }
+
+                if (apiKey) localStorage.setItem(this.GLOBAL_API_KEY, apiKey);
                 if (binId) localStorage.setItem(this.getStorageKey('bin_id'), binId);
                 else if (!localStorage.getItem(this.getStorageKey('bin_id'))) localStorage.removeItem(this.getStorageKey('bin_id'));
                 localStorage.setItem(this.getStorageKey('default_mode'), document.getElementById('conf-default-mode').value);
@@ -2777,27 +2811,27 @@
                 localStorage.setItem(this.getStorageKey('ai_global'), document.getElementById('conf-ai-ctx-global').value.trim());
                 localStorage.setItem(this.getStorageKey('ai_edit'), document.getElementById('conf-ai-ctx-edit').value.trim());
                 localStorage.setItem(this.getStorageKey('ai_list'), document.getElementById('conf-ai-ctx-list').value.trim());
-                this.updateSyncButton('idle'); 
+                this.updateSyncButton('idle');
                 document.getElementById('config-modal').classList.remove('show'); this.showToast('Config Saved');
-                
+
                 if (binId !== oldBinId || !binId) {
-                    // Bin cambió: hay que volver a hacer fetch antes de cualquier sync
+
                     this.firstFetchDone = false;
                     this.checkSyncReady('load');
                 } else {
                     this.mergeAndSync();
                 }
-                
+
                 this.renderTable(document.getElementById('search-input').value);
             }
             toggleMode() {
                 this.viewMode = this.viewMode === 'edit' ? 'view' : 'edit';
-                // Cualquier "edición temporal desde view" queda absorbida por el cambio global.
+
                 this.tempEditIds.clear();
                 this.applyMode();
                 this.renderTable(document.getElementById('search-input').value);
                 localStorage.setItem(this.getStorageKey('view_mode'), this.viewMode);
-                
+
                 if (this.activeRecordId && this.activeRecordId !== '__new__') {
                     if (this.viewMode === 'edit') this.editItem(this.activeRecordId);
                     else this.viewItem(this.activeRecordId);
@@ -2837,7 +2871,7 @@
                 this.bumpItemVersion(item);
                 this.saveLocalData();
                 if (this.syncEnabled) this.mergeAndSync();
-                this.viewItem(id); 
+                this.viewItem(id);
             }
             viewItem(id) {
                 const item = this.db.items.find(i => i.id === id); if (!item) return;
@@ -2857,7 +2891,7 @@
                         } else {
                             const allChecked = lines.every(l => l.trim().startsWith('-'));
                             const toggleAllHtml = `<label class="detail-checklist-item" style="font-weight:bold;"><input type="checkbox" class="detail-checklist-cb" ${allChecked ? 'checked' : ''} onchange="app.toggleAllChecklist('${id}', '${f.key}', this.checked)"><span>Toggle all</span></label>`;
-                            
+
                             html = '<div class="detail-checklist">' + toggleAllHtml + lines.map((l, idx) => {
                                 const text = l.trim();
                                 const isChecked = text.startsWith('-');
@@ -2873,8 +2907,7 @@
                 this.openRecord(id);
             }
             toggleAIAssistantBox() {
-                // Llamado al abrir/editar/ver un registro: simplemente actualiza la
-                // visibilidad del chat según haya o no Gemini key configurada.
+
                 const hasKey = !!localStorage.getItem('global_gemini_api_key');
                 document.getElementById('chat-bar-row').style.display = hasKey ? 'flex' : 'none';
             }
@@ -2887,14 +2920,19 @@
                 if (!key) { this.showToast('Configure AI Key first'); return; }
                 if (!userMsg) { this.showToast('Type a request first'); return; }
 
-                // Decide qué hace el chat según dónde esté el usuario:
-                //   - Si el panel de edición de un registro está visible → rellenar formulario.
-                //   - En cualquier otro caso (LIST, KPIs, EXCEL, o detalle en View) → filtrar lista.
-                const editPanelVisible = this.activeListTab === 'record'
-                    && document.getElementById('record-tab-edit-panel').style.display !== 'none';
+                const recordOpen = !!this.activeRecordId
+                    && this.activeListTab === 'record'
+                    && this.activeRecordId !== '__new__';
+                const editingThisRecord = !!this.activeRecordId
+                    && this.activeListTab === 'record'
+                    && (this.viewMode === 'edit'
+                        || this.activeRecordId === '__new__'
+                        || this.tempEditIds.has(this.activeRecordId));
 
-                if (editPanelVisible) {
+                if (editingThisRecord) {
                     await this._aiFillRecord(userMsg, key, chatInput, btn);
+                } else if (recordOpen) {
+                    await this._aiAnswerRecord(userMsg, key, chatInput, btn);
                 } else {
                     await this._aiChatList(userMsg, key, chatInput, btn);
                 }
@@ -2905,7 +2943,15 @@
                 const name = document.getElementById('field-name').value.trim();
                 if (!name) { this.showToast('Enter a NAME first'); return; }
                 const schemaKeys = this.db.schema.map(f => f.key);
-                const systemPrompt = `CONTEXT GLOBAL: ${localStorage.getItem(this.getStorageKey('ai_global')) || ''}\nREGLAS: ${localStorage.getItem(this.getStorageKey('ai_edit')) || ''}\nCAMPOS: ${this.db.schema.map(f => `"${f.key}" (${f.type}) instructions: ${f.aiRule || ''}`).join(', ')}\nJSON STRUCTURE: {"datos": ${JSON.stringify(schemaKeys.reduce((a,k)=>({...a,[k]:""}),{}))}, "mensaje": "description"}. Solo JSON, no markdown.`;
+                const camposDesc = this.db.schema.map(f => {
+                    let d = `"${f.key}" (${f.type})`;
+                    if (f.type === 'select' && f.options && f.options.length) {
+                        d += ` options: [${f.options.join(' | ')}]`;
+                    }
+                    if (f.aiRule) d += ` instructions: ${f.aiRule}`;
+                    return d;
+                }).join(', ');
+                const systemPrompt = `CONTEXT GLOBAL: ${localStorage.getItem(this.getStorageKey('ai_global')) || ''}\nREGLAS: ${localStorage.getItem(this.getStorageKey('ai_edit')) || ''}\nCAMPOS: ${camposDesc}\nJSON STRUCTURE: {"datos": ${JSON.stringify(schemaKeys.reduce((a,k)=>({...a,[k]:""}),{}))}, "mensaje": "description"}. Para campos 'select', el valor debe coincidir EXACTAMENTE con una de las options. Solo JSON, no markdown.`;
                 const userPrompt = `ITEM: "${name}"\nCURRENT DATA: ${JSON.stringify(Array.from(document.querySelectorAll('#dynamic-fields-container .form-input')).reduce((a,el)=>({...a,[el.dataset.key]:el.value}),{}))}\nUSER ORDER: "${userMsg}"`;
                 btn.disabled = true; btn.textContent = '...';
                 try {
@@ -2920,9 +2966,27 @@
                     });
                     const data = await res.json();
                     const resp = JSON.parse(data.candidates[0].content.parts[0].text);
-                    if (resp.datos) Object.entries(resp.datos).forEach(([k, v]) => { const el = document.querySelector(`[data-key="${k}"]`); if (el) el.value = v; });
+                    if (resp.datos) {
+                        const fieldMap = new Map(this.db.schema.map(f => [f.key, f]));
+                        Object.entries(resp.datos).forEach(([k, v]) => {
+                            const el = document.querySelector(`[data-key="${k}"]`);
+                            if (!el) return;
+                            const field = fieldMap.get(k);
+
+                            if (field && field.type === 'select' && Array.isArray(field.options) && field.options.length) {
+                                if (v === '' || v == null) { el.value = ''; return; }
+                                const sv = String(v).trim();
+                                let canonical = field.options.find(o => o === sv)
+                                    || field.options.find(o => o.toLowerCase() === sv.toLowerCase());
+                                if (canonical) el.value = canonical;
+                                else console.warn(`[ai] Skipped invalid option for "${k}":`, v, '— allowed:', field.options);
+                                return;
+                            }
+                            el.value = v;
+                        });
+                    }
                     if (resp.mensaje) this.showAiAnswer(resp.mensaje);
-                    // Texto del chat permanece visible; click en el input lo vacía.
+                    promptInput.value = '';
                 } catch (err) {
                     this.showToast('AI Error');
                 } finally {
@@ -2930,7 +2994,49 @@
                 }
             }
 
-            // ─── Helpers para mostrar/ocultar la tarjeta de respuesta de la IA ───
+            async _aiAnswerRecord(userMsg, key, promptInput, btn) {
+
+                const model = localStorage.getItem(this.getStorageKey('gemini_model')) || 'models/gemini-2.0-flash';
+                const item = this.db.items.find(i => i.id === this.activeRecordId);
+                if (!item) { this.showToast('No record open'); return; }
+
+                const compact = {};
+                for (const [k, v] of Object.entries(item)) {
+                    if (k === 'lastModified' || k === 'version' || k === 'deleted') continue;
+                    if (v === '' || v === null || v === undefined) continue;
+                    compact[k] = v;
+                }
+                const schemaDesc = this.db.schema.map(f => {
+                    let d = `"${f.key}" (${f.type})`;
+                    if (f.type === 'select' && f.options && f.options.length) d += ` options: [${f.options.join(' | ')}]`;
+                    return d;
+                }).join(', ');
+                const systemPrompt = `Estás respondiendo una pregunta sobre UN SOLO REGISTRO que el usuario está viendo.\n\nCONTEXT GLOBAL: ${localStorage.getItem(this.getStorageKey('ai_global')) || '(none)'}\nSCHEMA: ${schemaDesc}\nRECORD DATA: ${JSON.stringify(compact)}\n\nReglas:\n- Responde basándote ÚNICAMENTE en RECORD DATA.\n- Si te piden escalar cantidades (ej.: "para 4 personas"), recalcula sobre los valores del registro.\n- Sé conciso y directo. Usa \\n para saltos de línea / listas.\n- Si no puedes responder con los datos disponibles, dilo honestamente.\n\nOUTPUT JSON: {"answer": "<respuesta en el idioma del usuario>"}. Solo JSON, no markdown.`;
+                btn.disabled = true; btn.textContent = '...';
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            system_instruction: { parts: [{ text: systemPrompt }] },
+                            contents: [{ parts: [{ text: userMsg }] }],
+                            generationConfig: { response_mime_type: 'application/json' }
+                        })
+                    });
+                    const data = await res.json();
+                    const resp = JSON.parse(data.candidates[0].content.parts[0].text);
+                    const answerText = (typeof resp.answer === 'string' && resp.answer.trim())
+                        ? resp.answer
+                        : 'La IA no devolvió respuesta.';
+                    this.showAiAnswer(answerText);
+                    promptInput.value = '';
+                } catch (err) {
+                    this.showToast('AI Error');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Send';
+                }
+            }
+
             showAiAnswer(text) {
                 const card = document.getElementById('ai-answer-card');
                 const textEl = document.getElementById('ai-answer-text');
@@ -2944,7 +3050,6 @@
             async _aiChatList(userMsg, key, promptInput, btn) {
                 const model = localStorage.getItem(this.getStorageKey('gemini_model')) || 'models/gemini-2.0-flash';
 
-                // Descripción del schema para la IA
                 const schemaDesc = this.db.schema.map(f => {
                     let desc = `"${f.key}" (${f.type})`;
                     if (f.type === 'select' && f.options && f.options.length) {
@@ -2953,7 +3058,6 @@
                     return desc;
                 }).join(', ');
 
-                // Rangos numéricos derivados de los datos reales
                 const numHints = {};
                 this.db.schema.filter(f => f.type === 'number').forEach(f => {
                     const values = this.db.items
@@ -2965,9 +3069,6 @@
                     }
                 });
 
-                // Registros actualmente visibles (lo que el usuario ve), para que la IA pueda
-                // contestar preguntas sobre ellos en modo "answer". El input de búsqueda
-                // siempre representa el texto activo (no hay modos).
                 const currentSearch = document.getElementById('search-input').value;
                 const lcSearchCurrent = currentSearch.toLowerCase();
                 const visibleItems = this.db.items.filter(i => {
@@ -2976,7 +3077,7 @@
                     const matchesFilters = Object.entries(this.activeFilters).every(([k, v]) => this.checkFilterMatch(i[k], v));
                     return matchesSearch && matchesFilters;
                 });
-                // Compactar para reducir el payload: quita campos vacíos y metadatos internos.
+
                 const compactItems = visibleItems.map(it => {
                     const out = {};
                     for (const [k, v] of Object.entries(it)) {
@@ -2989,44 +3090,44 @@
 
                 const systemPrompt = `You assist a user exploring a records database. Pick ONE of two modes per request and respond ONLY with JSON.
 
-MODE "filter": user wants to subset/narrow the visible records by criteria.
+                MODE "filter": user wants to subset/narrow the visible records by criteria.
   Examples: "fighting games", "from the 90s", "Nintendo platformers", "with 'evil' in name"
   Output: { "mode": "filter", "filters": {...}, "search": "...", "message": "..." }
 
-MODE "answer": user asks a question requiring sorting/ranking/counting/aggregating/describing the data.
+  MODE "answer": user asks a question requiring sorting/ranking/counting/aggregating/describing the data.
   Examples: "the 5 most expensive", "how many GBC do I own?", "average year?", "which developer appears most?"
   Output: { "mode": "answer", "answer": "<answer in user's language; can use \\n for line breaks>" }
 
-Pick "answer" when the request is ABOUT the data (analysis, ranking, count, summary).
-Pick "filter" when the request NARROWS the data.
+  Pick "answer" when the request is ABOUT the data (analysis, ranking, count, summary).
+  Pick "filter" when the request NARROWS the data.
 
-GLOBAL CONTEXT: ${localStorage.getItem(this.getStorageKey('ai_global')) || '(none)'}
-LIST RULES: ${localStorage.getItem(this.getStorageKey('ai_list')) || '(none)'}
+  GLOBAL CONTEXT: ${localStorage.getItem(this.getStorageKey('ai_global')) || '(none)'}
+  LIST RULES: ${localStorage.getItem(this.getStorageKey('ai_list')) || '(none)'}
 
-SPECIAL FIELD: "name" (text) — title of each record (always present, not in schema).
+  SPECIAL FIELD: "name" (text) — title of each record (always present, not in schema).
 
-SCHEMA: ${schemaDesc}
+  SCHEMA: ${schemaDesc}
 
-NUMBER RANGES (current data): ${JSON.stringify(numHints)}
+  NUMBER RANGES (current data): ${JSON.stringify(numHints)}
 
-CURRENT FILTERS: ${JSON.stringify(this.activeFilters)}
-CURRENT SEARCH: "${currentSearch}"
+  CURRENT FILTERS: ${JSON.stringify(this.activeFilters)}
+  CURRENT SEARCH: "${currentSearch}"
 
-CURRENTLY VISIBLE RECORDS (after current filters/search — what user sees) [${compactItems.length} items]:
-${JSON.stringify(compactItems)}
+  CURRENTLY VISIBLE RECORDS (after current filters/search — what user sees) [${compactItems.length} items]:
+  ${JSON.stringify(compactItems)}
 
-FILTER MODE rules:
-- 'select' values must match an exact option (case-sensitive).
-- 'number' value: "RANGO:<min>:<max>:<inclusive>", e.g. "RANGO:1990:2000:0".
-- For partial match in name or any text field, use "search" (NOT a filter).
-- Refining preserves previous filters/search; "clear / reset / show all" → filters: {}, search: "".
+  FILTER MODE rules:
+  - 'select' values must match an exact option (case-sensitive).
+  - 'number' value: "RANGO:<min>:<max>:<inclusive>", e.g. "RANGO:1990:2000:0".
+  - For partial match in name or any text field, use "search" (NOT a filter).
+  - Refining preserves previous filters/search; "clear / reset / show all" → filters: {}, search: "".
 
-ANSWER MODE rules:
-- Base your answer ONLY on the CURRENTLY VISIBLE RECORDS shown above. Don't invent data.
-- Be concise and direct. Use \\n for new lines / lists.
-- If you cannot answer with the visible records, say so honestly.
+  ANSWER MODE rules:
+  - Base your answer ONLY on the CURRENTLY VISIBLE RECORDS shown above. Don't invent data.
+  - Be concise and direct. Use \\n for new lines / lists.
+  - If you cannot answer with the visible records, say so honestly.
 
-OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
+  OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
 
                 btn.disabled = true; btn.textContent = '...';
                 try {
@@ -3042,19 +3143,15 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                     const data = await res.json();
                     const resp = JSON.parse(data.candidates[0].content.parts[0].text);
 
-                    // ── Modo ANSWER: muestra la respuesta de la IA en la tarjeta ──
                     if (resp.mode === 'answer') {
                         const answerText = (typeof resp.answer === 'string' && resp.answer.trim())
                             ? resp.answer
                             : 'La IA no devolvió respuesta.';
                         this.showAiAnswer(answerText);
-                        // El texto del chat permanece visible (click lo vacía).
+                        promptInput.value = '';
                         return;
                     }
 
-                    // ── Modo FILTER (por defecto si mode no es 'answer') ──
-                    // Al entrar en filter, ocultamos cualquier respuesta previa para que la UI
-                    // no quede inconsistente.
                     this.hideAiAnswer();
 
                     const newFilters = {};
@@ -3069,12 +3166,11 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                     }
                     this.activeFilters = newFilters;
 
-                    // Aplicar el texto de búsqueda devuelto por la IA al input de Search
-                    // (independiente del input de chat, que mantiene su texto).
                     const searchText = (typeof resp.search === 'string') ? resp.search : '';
                     document.getElementById('search-input').value = searchText;
                     this.renderFilters();
                     this.renderTable(searchText);
+                    promptInput.value = '';
 
                     if (resp.message) {
                         this.showToast(resp.message);
@@ -3095,12 +3191,12 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                     btn.disabled = false; btn.textContent = 'Send';
                 }
             }
-            // ─── Conflict resolution modal ───────────────────────
+
             openNextConflict() {
                 if (this.pendingConflicts.length === 0) {
                     this.activeConflict = null;
                     document.getElementById('conflict-modal').classList.remove('show');
-                    // Una vez resueltos todos, intenta sincronizar de nuevo.
+
                     if (this.syncEnabled) {
                         setTimeout(() => this.mergeAndSync(), 200);
                     }
@@ -3114,18 +3210,17 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                 const c = this.activeConflict;
                 if (!c) return;
                 const total = this.pendingConflicts.length;
-                const idx = 1; // Siempre estamos resolviendo el primero de la cola
+                const idx = 1;
                 document.getElementById('conflict-item-name').textContent = c.mine.name || c.theirs.name || '?';
                 document.getElementById('conflict-progress').textContent = total > 1 ? `Conflict ${idx} of ${total}` : '';
 
-                // Conjunto de claves a comparar: todas las del schema + name (excluye metadatos).
                 const fieldKeys = ['name', ...this.db.schema.map(f => f.key).filter(k => k !== 'name')];
                 const list = document.getElementById('conflict-fields-list');
                 list.innerHTML = '';
                 fieldKeys.forEach(key => {
                     const myVal = c.mine[key] !== undefined ? c.mine[key] : '';
                     const theirVal = c.theirs[key] !== undefined ? c.theirs[key] : '';
-                    if (String(myVal) === String(theirVal)) return; // No es divergente
+                    if (String(myVal) === String(theirVal)) return;
                     const row = document.createElement('div');
                     row.className = 'conflict-field';
                     row.dataset.fieldKey = key;
@@ -3151,7 +3246,7 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                         </div>
                     `;
                     list.appendChild(row);
-                    // Selección visual al hacer click en cualquier opción
+
                     row.querySelectorAll('.conflict-option').forEach(opt => {
                         opt.addEventListener('click', () => {
                             row.querySelectorAll('.conflict-option').forEach(o => o.classList.remove('selected'));
@@ -3162,7 +3257,7 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                     });
                 });
                 if (list.children.length === 0) {
-                    // No hay diferencias reales (metadata mismatch?). Auto-resuelve.
+
                     list.innerHTML = '<p style="font-size:13px; color:var(--text-light);">No real differences detected. Closing...</p>';
                     setTimeout(() => this.applyConflictResolution('mine'), 600);
                 }
@@ -3171,7 +3266,7 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                 const c = this.activeConflict;
                 if (!c) return;
                 const list = document.getElementById('conflict-fields-list');
-                // Construye el item resuelto partiendo de "mine" como base, y aplica las elecciones.
+
                 const resolved = JSON.parse(JSON.stringify(c.mine));
                 list.querySelectorAll('.conflict-field').forEach(row => {
                     const key = row.dataset.fieldKey;
@@ -3185,21 +3280,19 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
                     if (choice === 'theirs') {
                         resolved[key] = c.theirs[key] !== undefined ? c.theirs[key] : '';
                     }
-                    // Si "mine", ya está en resolved
+
                 });
-                // Para campos que existen en theirs pero no se mostraron como conflicto
-                // (idénticos), no hace falta hacer nada — ya están en mine.
-                // Bumpea version por encima del máximo para garantizar que gana en cloud.
+
                 resolved.version = Math.max(this.getItemVersion(c.mine), this.getItemVersion(c.theirs)) + 1;
                 resolved.lastModified = new Date().toISOString();
-                // Reemplaza en local
+
                 const idx = this.db.items.findIndex(i => i.id === resolved.id);
                 if (idx >= 0) this.db.items[idx] = resolved;
                 else this.db.items.push(resolved);
                 this.saveLocalData();
                 this.renderTable(document.getElementById('search-input').value);
                 this.showToast('Conflict resolved');
-                // Saca el conflicto resuelto de la cola y abre el siguiente
+
                 this.pendingConflicts.shift();
                 this.activeConflict = null;
                 this.openNextConflict();
@@ -3207,6 +3300,6 @@ OUTPUT JSON ONLY (no markdown, no prose outside JSON).`;
             showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4000); }
         }
         const app = new ContextApp();
-    </script>
+</script>
 </body>
 </html>

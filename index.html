@@ -2213,7 +2213,7 @@ const EPOCH_SENTINEL = '1970-01-01T00:00:00.000Z';
                             hasValid = valid.has(opt);
                         }
 
-                        if (!this.activeFilters[field.key] && !hasValid && this.db.items.length > 0) return;
+                        if (!hasValid && this.activeFilters[field.key] !== opt && this.db.items.length > 0) return;
 
                         const chip = document.createElement('span');
                         chip.className = `filter-chip ${this.activeFilters[field.key] === opt ? 'active' : ''}`;
